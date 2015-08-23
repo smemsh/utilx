@@ -1,0 +1,71 @@
+#!/bin/bash
+#
+# chkbatt
+#   checks battery, flashes screen accordingly (hardcoded thresholds)
+#   (run at intervals with eg crontab -e)
+#
+# http://smemsh.net/src/chkbatt
+# http://spdx.org/licenses/GPL-2.0
+# scott@smemsh.net
+#
+##############################################################################
+
+source ~/lib/sh/include
+include setenv
+require bomb
+
+debug=0
+
+# battery percentage thresholds and respective number of
+# flashes when we are run and measure capacity as between
+# thresholds (number of elements must align)
+# (capacity > threshold[n], ring bell flashes[n])
+#
+setarr thresholds	0  7 13 19 33 66 89
+setarr flashes		6  5  4  3  2  1  0
+
+# how long between flash cycles (which repeat for flashes[n])
+#
+setenv flashms		1000
+
+get_battery_capacity ()
+{
+	local batfiles=(/sys/class/power_supply/BAT*)
+
+	if ! ((${#batfiles[@]} == 1))
+	then false; exit 5
+	else batfile=$batfiles
+	fi
+
+	printf $(<$batfile/capacity)
+}
+
+determine_threshold ()
+{
+	local level
+
+	while ((capacity > ${thresholds[level++]})); do :; done
+	let level-- # back up one since we walked off end
+
+	#for ((i = 0; i < ${#thresholds[@]}; i++)); do
+	#	thresh=${thresholds[i]}
+	#	if ((capacity > thresh))
+	#	then let level++
+	#	else break; fi; done
+
+	printf $level
+}
+
+main ()
+{
+	setenv capacity	`get_battery_capacity`
+	setenv level	`determine_threshold`
+	setenv flashes	${flashes[level-1]}
+
+	flashscreen $flashes $flashms ||
+		bomb "error executing screen flasher"
+}
+
+((debug)) && set -x
+
+main "$@"
