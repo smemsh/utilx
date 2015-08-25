@@ -1,0 +1,476 @@
+#!/bin/bash
+#
+# wmpersist
+#   - save/load chromium window titles to winname mappings
+#   - works with ratpoison window manager
+#
+# usage:
+#   "wmpersist save": write out chromium window titles to
+#                     ratpoison winname mappings
+#
+#   "wmpersist load": take existing windows, search for
+#                     titles in the save file, and
+#                     rename/renumber within ratpoison to
+#                     match them, once chromium has been
+#                     restarted (typically following a crash,
+#                     which happens frequently)
+#
+# authors: scott@smemsh.net
+# project: http://smemsh.net/prj/wmpersist
+# license: http://spdx.org/licenses/GPL-2.0.html
+#
+# todo:
+#   - make $sep pattern same in both rp and xwininfo data
+#     gathering functions
+#   - ratpoison needs a target arg available for its window
+#     name change command
+#   - move usage to a constant and emit rather than using
+#     comment block to document
+#   - use debug routines from libsh rather than ad-hoc inline
+#     test-and-print
+#   - this does not work if one of the tabs is a Chromium
+#     bookmark manager, unknown reason, have to trace this down
+#
+##############################################################################
+
+source ~/lib/sh/include
+require setenv
+require bomb
+require now
+
+save_file=~/var/rpwm/wmpersist.dat
+
+debug=1 # enable for additional prints, etc
+
+if ((debug))
+then
+	debug_file=~/var/rpwm/wmpersist.debug
+	trunc $debug_file
+fi
+
+rpcmd='ratpoison -c'
+
+# total number of chromium windows we loop about
+#
+declare -g nwins
+
+# array for storing the current names, numbers, titles
+#
+declare -a windata_names
+declare -a windata_numbers
+declare -a windata_titles
+
+# dictionary to save win nums, check if exists upon restore
+#
+declare -A windata_number_to_title
+
+# dictionaries for mappings against title, so we can take
+# the current one and make it the desired (saved) one
+#
+declare -A winmap_title_to_name
+declare -A winmap_title_to_number
+
+###
+
+# for switching on invocation name based on whether a
+# correspondingly named function exists
+#
+function_exists ()
+{
+	declare -f $1 &>/dev/null
+}
+
+###
+
+# use ratpoison 'windows' command to construct lines with format:
+# "xid winname number" where: xid is the xwindows id, winname
+# is the res_name class hint, and number is the ratpoison
+# window number (so we can order them on reconstruct), and
+# write to stdout
+#
+get_window_rpdata ()
+{
+	local sep='^\d+\sChromium\sChromium\s'
+
+	$rpcmd 'windows %i %a %c %t %n' |
+	grep -P "$sep" |
+	awk '{
+		printf("%s", $1)
+		for (i = 4; i <= NF; i++)
+			printf(" %s", $i)
+		printf("\n")
+	}' |
+	sort -nrk 1,2
+}
+
+# use 'xwininfo' to print a tree of windows and fiter out
+# fields with just xid and title separated by a single space
+# and written to lines on stdout
+#
+get_window_titles ()
+{
+	local sep=$':.*("Chromium"\x20"Chromium")'
+
+	xwininfo -int -root -children |
+	grep -P '^\s+\d+\s' |
+	grep "$sep" |
+	awk -F '("Chromium" "Chromium")' '{print $1}' |
+	sed s,^'[[:space:]]*',, |
+	sort -nrk 1,2
+}
+
+# create variables used by save and restore from ratpoison
+# (xid, name, number) and xwininfo (xid, title) output
+#
+gather_data ()
+{
+	local -a rpdata titles
+	local i
+
+	# whether to check that the rp and xwininfo lists
+	# match (they should on a save, they won't on a restore)
+	#
+	local should_match=$1
+
+	# for storing the interesting variables from each
+	# "xwininfo" and "ratpoison -c windows" lines, which
+	# we will process later
+	#
+	local rpxid ttxid rpnam rpnum title
+	
+	# ratpoison does not store the window title accessible
+	# from 'windows' command so we have to do this twice:
+	# once for ratpoison, and once to get the titles,
+	# making the $rpdata[] and $titles[] arrays which have
+	# one element per line (we split up later into the
+	# globals declared above for each iteration, and run
+	# the callback)
+	#
+	readarray -t rpdata <<< "$(get_window_rpdata)"
+	readarray -t titles <<< "$(get_window_titles)"
+
+	nwins=${#rpdata[@]}
+
+	if ((debug))
+	then
+		declare -p rpdata >> $debug_file
+		declare -p titles >> $debug_file
+		declare -p nwins >> $debug_file
+	fi
+
+	#
+	for ((i = 0; i < nwins; i++))
+	do
+		# pull out the ratpoison data fields we want
+		# from each output line stored in the array
+		#
+		setenv pattern \
+			'([[:digit:]]+)[[:space:]]' \
+			'(.*)[[:space:]]' \
+			'([[:digit:]]+)' \
+		;
+		[[ "${rpdata[i]}" =~ $pattern ]]
+		rpxid=${BASH_REMATCH[1]}
+		rpnam=${BASH_REMATCH[2]}
+		rpnum=${BASH_REMATCH[3]}
+
+		# and then also save fields we want from
+		# the xwininfo output
+		#
+		setenv pattern \
+			'([[:digit:]]+)[[:space:]]' \
+			'"(.*)"' \
+		;
+		[[ "${titles[i]}" =~ $pattern ]]
+		ttxid=${BASH_REMATCH[1]}
+		title=${BASH_REMATCH[2]}
+
+		# on save, the two arrays should now have the
+		# exact same windows in the same order with
+		# different data, but the first datum
+		# identical (the xid), so we can now merge the
+		# lines, but compare their xids (the join
+		# field) to be sure they are the same: a small
+		# race window exists between collecting the
+		# window data from ratpoison, and from
+		# xwininfo, when a new window could have been
+		# created
+		#
+		if ((should_match)); then
+			if ! ((rpxid == ttxid)); then
+				bomb "winid mismatch"; fi; fi
+
+		# stash the gathered variables in indexed (by
+		# line number from $rpdata[] and $titles[],
+		# which should be same) and associative arrays
+		# (by title) to use later (the save/restore
+		# routines both use these data)
+		#
+		windata_names+=("$rpnam")
+		windata_titles+=("$title")
+		windata_numbers+=($rpnum)
+
+		# also maintain a dictionary of rpnums: if
+		# restore routine has called us, it will want
+		# to look up whether the saved number it's
+		# trying to restore already exists, and also
+		# will want to swap mappings, so we use
+		# this to mark that the number has an
+		# associated title already, and what the title
+		# is (so we can swap our own list in-place)
+		#
+		windata_number_to_title[$rpnum]="$title"
+
+		# however, we *do* want to use a title:number
+		# dictionary because, on restore, we have to
+		# know existing mapping of title to ratpoison
+		# window number (we could just search the
+		# array and look up name at the corresponding
+		# offset of title, but it would happen for
+		# every window we wanted to change the name
+		# of, and that's too slow); this way we can
+		# search the array in constant time for each
+		# one.  when found we get the number, switch
+		# to it, and then write the name
+		#
+		winmap_title_to_number["$title"]="$rpnum"
+
+		# we don't actually use this yet, because we
+		# already have the existing mappings, gathered
+		# in $windata_{names,titles}[] and only need
+		# it for creating the save-state file, which
+		# means no searching is required (we just
+		# iterate over the elements and write each
+		# one to the save file)
+		#
+		winmap_title_to_name["$title"]="$rpnam"
+	done
+
+	if ((debug))
+	then
+		declare -p windata_names >> $debug_file
+		declare -p windata_numbers >> $debug_file
+		declare -p windata_titles >> $debug_file
+		declare -p winmap_title_to_name >> $debug_file
+		declare -p winmap_title_to_number >> $debug_file
+	fi
+
+	# verify no more leftover: we should be at the end of
+	# both rpdata[] and titles[], because they should
+	# represent the same set of windows (on save), but we
+	# want to make sure a new window did not creep in
+	# after we got rpdata but before we got titles (we
+	# keyed off ${#rpdata[@]} to determine iteration count
+	# for above loop)
+	#
+	if ((should_match)); then
+		if ! ((i == ${#titles[@]})); then
+			bomb "title mismatch"; fi; fi
+}
+
+##############################################################################
+
+# paste together the stashed fields from $rpdata[] and
+# $titles[] into now-merged lines with the info we need to
+# reconstruct, and write them to the save file
+#
+# TODO needs some kind of locking, especially if we will run
+# this on all window title change events as we plan to via
+# hook NOTE do not see title-change hook in manual, but is in
+# source code?!?!
+#
+save ()
+{
+	local i
+
+	mv -i $save_file $save_file.`now`
+	gather_data 1
+
+	# write the relevant stashed window data (as gathered
+	# by gather_data()) into the designated save file
+	#
+	for ((i = 0; i < nwins; i++)); do
+		printf "%u %s %s\n" \
+			"${windata_numbers[i]}" \
+			"${windata_names[i]}" \
+			"${windata_titles[i]}" \
+		>> $save_file
+	done
+
+	echo "saved" # TODO ratpoison verbexec does not display this?
+}
+
+restore ()
+{
+	local i
+	local pattern line
+	local saved_num saved_name saved_title
+
+	local -a lines
+	readarray -t lines < $save_file
+
+	if ((debug)); then
+		declare -p lines > $debug_file; fi
+
+	gather_data 0
+
+	print_rpinfo () { $rpcmd "info %i %t %n"; }
+
+	# for each saved title-name mapping, find the target
+	# window, switch to it, rename it (in ratpoison, ie
+	# 'winname' set by 'title'), and switch back
+	#
+	for ((i = 0; i < ${#lines[@]}; i++))
+	do
+		line="${lines[i]}"
+		setenv pattern '^' \
+			'([[:digit:]]+)[[:space:]]' \
+			'([^[:space:]]+)[[:space:]]' \
+			'(.*)' \
+		;
+		[[ $line =~ $pattern ]]
+		saved_num=${BASH_REMATCH[1]}
+		saved_name=${BASH_REMATCH[2]}
+		saved_title=${BASH_REMATCH[3]}
+
+		target=${winmap_title_to_number["$saved_title"]}
+		if ! [[ $target ]]; then
+			bomb "failed map title -> number: \"$saved_title\""; fi
+
+		if ((debug))
+		then
+			printf "%s: %s\n" \
+		             loop "$i" \
+		        saved_num "$saved_num" \
+		       saved_name "$saved_name" \
+		      saved_title "$saved_title" \
+		           target "$target" \
+		; fi
+
+		if ((debug)); then
+			printf "before: %s\n" `print_rpinfo`; fi
+
+		# TODO: instead of having to select the
+		# window, there should be a way to give a
+		# second arg for target window, as with the
+		# 'number' ratpoison command
+		#
+		$rpcmd "select $target" ||
+			bomb "failed to select target $target"
+
+		if ((debug)); then
+			printf "after-select: %s\n" `print_rpinfo`; fi
+
+		# sets rp $winname (res_name class hint for us)
+		#
+		# TODO this doesn't seem to actually set
+		# res_name but some internal ratpoison
+		# variable, which is the reason for a whole
+		# lot of trickery in this script, otherwise we
+		# could just set the xprop directly, out of
+		# band, without using the window manager at
+		# all
+		#
+		$rpcmd "title $saved_name" ||
+			bomb "failed to set title $saved_name"
+
+		if ((debug)); then
+			printf "after-title: %s\n" `print_rpinfo`; fi
+
+		$rpcmd "number $saved_num" ||
+			bomb "failed to switch number $saved_num"
+
+		# if the destination window already exists,
+		# ratpoison will swap it when we do a 'number'
+		# so we need to update our gathered title ->
+		# num and num -> title maps in-place for the
+		# next loop iteration to have correct mapping
+		# data after swap
+		#
+		oldtitle="${windata_number_to_title[$saved_num]}"
+
+		if ((debug)); then
+			printf "oldtitle: %s\n" "$oldtitle"
+			printf "saved_num: %s\n" "$saved_num"
+		fi
+
+		if [[ $oldtitle ]]
+		then
+			winmap_title_to_number["$saved_title"]=$saved_num
+			winmap_title_to_number["$oldtitle"]=$target
+			windata_number_to_title[$saved_num]="$saved_title"
+			windata_number_to_title[$target]="$oldtitle"
+		fi
+
+		if ((debug))
+		then
+			printf "after-number: %s\n" `print_rpinfo`
+			#
+			# separate the debug prints with a blank line
+			# each loop
+			#
+			echo
+		fi
+	done
+
+	# OLD WAY -- NOT USED (did this in a separate pass
+	# afterwards using ratpoison, before we changed to
+	# update our maps in-place)
+	#
+	# trying to iterate over window numbers and change
+	# them to new ones causes them to be swapped with each
+	# other, invalidating iteration list order.  instead
+	# of dealing with this we make another loop over the
+	# titles instead, when changing numbers, since that
+	# list has a stable sort order in the face of window
+	# number change.  thankfully ratpoison 'select' can be
+	# given either a number or a title, but this prevents
+	# us from being able to utilize the second-argument
+	# form of 'number' command (which would obviate the
+	# need to switch window first, since we would know
+	# already)
+	#
+	# TODO we might be able to update
+	# $winmap_title_to_number[] in-place while we change
+	# titles (in the previous loop), and then the
+	# iteration by window number wouldn't be wrong and we
+	# wouldn't need to loop a second time (i think?)
+	#
+	# TODO wait, maybe we could just use
+	# $winmap_title_to_name[] which is currently unused
+	# (see its notes)?  or use that one for both loops?
+	# and then factor out the second loop?
+	#
+	#for ((i = 0; i < ${#lines[@]}; i++)); do
+	#	$rpcmd "select $saved_name"
+	#	$rpcmd "number $saved_num"
+	#done
+}
+
+# use to output all properties of all windows during testing
+# todo: currently, no call sites, link into invocation somewhere
+#
+props ()
+{
+	ids=($(lsw -l | awk '{print $1}'))
+	props=($(xlsatoms | grep WM | awk '{print $2}'))
+	for id in ${ids[@]}; do
+		for prop in ${props[@]}; do
+			xprop -id $id $prop; done; done \
+	| grep -v 'not.found\.$'
+}
+
+##############################################################################
+
+main ()
+{
+	if ! [[ $1 ]]; then
+		bomb "required arg missing"; fi
+
+	# todo: use libsh version of this code
+	if function_exists $1
+	then $1 "${@:2}"
+	else bomb "unimplemented"; fi
+}
+	
+main "$@"
