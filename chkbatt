@@ -44,7 +44,7 @@ determine_threshold ()
 {
 	local level
 
-	while ((capacity > ${thresholds[level++]})); do :; done
+	while ((capacity > ${thresholds[level++]:-999})); do :; done
 	let level-- # back up one since we walked off end
 
 	#for ((i = 0; i < ${#thresholds[@]}; i++)); do
