@@ -45,7 +45,7 @@ determine_threshold ()
 	local level
 
 	while ((capacity > ${thresholds[level++]:-999})); do :; done
-	let level-- # back up one since we walked off end
+	let level-- # back up since we walked one past target before test
 
 	printf $level
 }
