@@ -15,10 +15,6 @@
 #                     restarted (typically following a crash,
 #                     which happens frequently)
 #
-# authors: scott@smemsh.net
-# project: http://smemsh.net/prj/wmpersist
-# license: http://spdx.org/licenses/GPL-2.0.html
-#
 # todo:
 #   - make $sep pattern same in both rp and xwininfo data
 #     gathering functions
@@ -30,6 +26,10 @@
 #     test-and-print
 #   - this does not work if one of the tabs is a Chromium
 #     bookmark manager, unknown reason, have to trace this down
+#
+# scott@smemsh.net
+# http://smemsh.net/prj/wmpersist
+# http://spdx.org/licenses/GPL-2.0.html
 #
 ##############################################################################
 
