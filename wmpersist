@@ -40,7 +40,7 @@ require now
 
 save_file=~/var/rpwm/wmpersist.dat
 
-debug=1 # enable for additional prints, etc
+debug=0 # enable for additional prints, etc
 
 if ((debug))
 then
