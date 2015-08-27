@@ -47,12 +47,6 @@ determine_threshold ()
 	while ((capacity > ${thresholds[level++]:-999})); do :; done
 	let level-- # back up one since we walked off end
 
-	#for ((i = 0; i < ${#thresholds[@]}; i++)); do
-	#	thresh=${thresholds[i]}
-	#	if ((capacity > thresh))
-	#	then let level++
-	#	else break; fi; done
-
 	printf $level
 }
 
