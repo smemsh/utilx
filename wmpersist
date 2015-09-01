@@ -26,6 +26,10 @@
 #     test-and-print
 #   - this does not work if one of the tabs is a Chromium
 #     bookmark manager, unknown reason, have to trace this down
+#     UPDATE: it may be because Chrome leaves around withdrawn
+#     windows seems like for eg bookmarks and google contacts
+#     pages that have been closed, see window_is_withdrawn()
+#     test in the code
 #
 # scott@smemsh.net
 # http://smemsh.net/src/wmpersist
@@ -119,6 +123,34 @@ get_window_titles ()
 	sort -nrk 1,2
 }
 
+# see https://tronche.com/gui/x/icccm/sec-4.html for
+# description of withdrawn window; it may be that ratpoison
+# should do something with these windows and doesn't; unknown,
+# but chrome leaves these around sometimes, seem to be eg
+# contacts.google.com, possibly bookmarks window (latter
+# unverified, but that would explain an earlier problem)
+#
+# TODO: more study needed on what these withdrawn windows are
+# and in what circumstances they arise and why, also is
+# ratpoison supposed to do something to destroy them?
+#
+window_is_withdrawn ()
+{
+	# this magic incantation gets the WM_STATE.state
+	# field, which is zeroed if the window is withdrawn
+	#
+	local wmstate=$(
+		xprop \
+			-notype \
+			-id $1 \
+			-f WM_STATE 32c ' $0' \
+			WM_STATE \
+		| awk '{print $NF}'
+	)
+
+	((wmstate == 0))
+}
+
 # create variables used by save and restore from ratpoison
 # (xid, name, number) and xwininfo (xid, title) output
 #
@@ -196,9 +228,35 @@ gather_data ()
 		# xwininfo, when a new window could have been
 		# created
 		#
-		if ((should_match)); then
-			if ! ((rpxid == ttxid)); then
-				bomb "winid mismatch"; fi; fi
+		if ((should_match && rpxid != ttxid))
+		then
+			# ratpoison will not list withdrawn
+			# windows, which chrome seems to leave
+			# around sometimes (causing a mismatch)
+			# so check if this is the case
+			#
+			if window_is_withdrawn $ttxid
+			then
+				# withdrawn windows can be
+				# ignored, since they are not
+				# visible to the user anyways
+				:
+
+				# however, now we need to
+				# rebuild the $titles[] array
+				# without this bogus entry,
+				# which we do by unsetting the
+				# bad element and reassigning
+				# the array from re-expansion
+				# (otherwise it will have a
+				# discontiguous index)
+				#
+				unset "titles[$i]"
+				titles=("${titles[@]}")
+			else
+				bomb "winid mismatch"
+			fi
+		fi
 
 		# stash the gathered variables in indexed (by
 		# line number from $rpdata[] and $titles[],
