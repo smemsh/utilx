@@ -38,8 +38,8 @@
 ##############################################################################
 
 source ~/lib/sh/include
+include error
 require setenv
-require bomb
 require now
 
 save_file=~/var/rpwm/wmpersist.dat
@@ -237,10 +237,11 @@ gather_data ()
 			#
 			if window_is_withdrawn $ttxid
 			then
-				# withdrawn windows can be
+				# withdrawn windows can just be
 				# ignored, since they are not
 				# visible to the user anyways
-				:
+				#
+				((debug)) && echo "ignoring $ttxid"
 
 				# however, now we need to
 				# rebuild the $titles[] array
@@ -254,7 +255,7 @@ gather_data ()
 				unset "titles[$i]"
 				titles=("${titles[@]}")
 			else
-				bomb "winid mismatch"
+				bomb "winid mismatch rpdata:$rpxid titles:$ttxid"
 			fi
 		fi
 
