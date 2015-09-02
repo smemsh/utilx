@@ -255,7 +255,11 @@ gather_data ()
 				unset "titles[$i]"
 				titles=("${titles[@]}")
 			else
-				bomb "winid mismatch rpdata:$rpxid titles:$ttxid"
+				bomb \
+					"winid mismatch" \
+					"rpdata:$rpxid" \
+					"titles:$ttxid" \
+				;
 			fi
 		fi
 
