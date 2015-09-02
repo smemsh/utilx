@@ -170,6 +170,105 @@ gather_data ()
 	#
 	local rpxid ttxid rpnam rpnum title
 	
+	# pull out the ratpoison data fields we want
+	# from each output line stored in the array
+	#
+	gather_rpdata_fields ()
+	{
+		setenv pattern \
+			'([[:digit:]]+)[[:space:]]' \
+			'(.*)[[:space:]]' \
+			'([[:digit:]]+)' \
+		;
+		[[ "${rpdata[i]}" =~ $pattern ]]
+		rpxid=${BASH_REMATCH[1]}
+		rpnam=${BASH_REMATCH[2]}
+		rpnum=${BASH_REMATCH[3]}
+	}
+
+	# and then also save fields we want from the xwininfo
+	# output, taking care to ignore withdrawn windows
+	# (keep iterating until we find one not withdrawn)
+	#
+	# TODO: this routine is too long and too heavily commented
+	#
+	gather_xwininfo_fields ()
+	{
+		while [[ ${titles[i]} ]]
+		do
+			setenv pattern \
+				'([[:digit:]]+)[[:space:]]' \
+				'"(.*)"' \
+			;
+			[[ "${titles[i]}" =~ $pattern ]]
+			ttxid=${BASH_REMATCH[1]}
+			title=${BASH_REMATCH[2]}
+
+			# on save, the two arrays $rpdata[] and
+			# $titles[] should have the same windows in the
+			# same order with different data but the first
+			# datum identical (the xid), so we can now merge
+			# the lines, but compare their xids (the join
+			# field) to be sure they are the same: a small
+			# race window exists between collecting the
+			# window data from ratpoison, and from xwininfo,
+			# when a new window could have been created, and
+			# also, this might be a withdrawn window
+			# TODO maybe test for withdrawn before even
+			# doing this
+			#
+			if ((should_match && rpxid != ttxid))
+			then
+				# ratpoison will not list withdrawn
+				# windows, which chrome seems to leave
+				# around sometimes (causing a mismatch)
+				# so check if this is the case
+				#
+				if window_is_withdrawn $ttxid
+				then
+					# withdrawn windows can just be
+					# ignored, since they are not
+					# visible to the user anyways
+					#
+					((debug)) && echo "ignoring $ttxid"
+
+					# however, now we need to
+					# rebuild the $titles[] array
+					# without this bogus entry
+					#
+					unset "titles[$i]"
+					titles=("${titles[@]}")
+
+					# loop to try again for match
+					#
+					continue
+				else
+					# we cannot explain the mismatch
+					# as a withdrawn window so
+					# probably a new window was
+					# created during race window
+					# (unhandled; abort)
+					#
+					bomb \
+						"winid mismatch" \
+						"rpdata:$rpxid" \
+						"titles:$ttxid" \
+					;
+				fi
+			else
+				# either this is a restore and
+				# $should_match is false, or we have a
+				# good match; either way, we're done
+				#
+				return
+			fi
+		done
+
+		bomb "walked off end of $titles[] without a match"
+	}
+
+	######################################################################
+
 	# ratpoison does not store the window title accessible
 	# from 'windows' command so we have to do this twice:
 	# once for ratpoison, and once to get the titles,
@@ -181,6 +280,10 @@ gather_data ()
 	readarray -t rpdata <<< "$(get_window_rpdata)"
 	readarray -t titles <<< "$(get_window_titles)"
 
+	# ratpoison will govern how many "real" windows we
+	# have; the xwininfo data has some extraneous ones
+	# which we will need to filter out later
+	#
 	nwins=${#rpdata[@]}
 
 	if ((debug))
@@ -190,78 +293,12 @@ gather_data ()
 		declare -p nwins >> $debug_file
 	fi
 
-	#
+	########################################################################
+
 	for ((i = 0; i < nwins; i++))
 	do
-		# pull out the ratpoison data fields we want
-		# from each output line stored in the array
-		#
-		setenv pattern \
-			'([[:digit:]]+)[[:space:]]' \
-			'(.*)[[:space:]]' \
-			'([[:digit:]]+)' \
-		;
-		[[ "${rpdata[i]}" =~ $pattern ]]
-		rpxid=${BASH_REMATCH[1]}
-		rpnam=${BASH_REMATCH[2]}
-		rpnum=${BASH_REMATCH[3]}
-
-		# and then also save fields we want from
-		# the xwininfo output
-		#
-		setenv pattern \
-			'([[:digit:]]+)[[:space:]]' \
-			'"(.*)"' \
-		;
-		[[ "${titles[i]}" =~ $pattern ]]
-		ttxid=${BASH_REMATCH[1]}
-		title=${BASH_REMATCH[2]}
-
-		# on save, the two arrays should now have the
-		# exact same windows in the same order with
-		# different data, but the first datum
-		# identical (the xid), so we can now merge the
-		# lines, but compare their xids (the join
-		# field) to be sure they are the same: a small
-		# race window exists between collecting the
-		# window data from ratpoison, and from
-		# xwininfo, when a new window could have been
-		# created
-		#
-		if ((should_match && rpxid != ttxid))
-		then
-			# ratpoison will not list withdrawn
-			# windows, which chrome seems to leave
-			# around sometimes (causing a mismatch)
-			# so check if this is the case
-			#
-			if window_is_withdrawn $ttxid
-			then
-				# withdrawn windows can just be
-				# ignored, since they are not
-				# visible to the user anyways
-				#
-				((debug)) && echo "ignoring $ttxid"
-
-				# however, now we need to
-				# rebuild the $titles[] array
-				# without this bogus entry,
-				# which we do by unsetting the
-				# bad element and reassigning
-				# the array from re-expansion
-				# (otherwise it will have a
-				# discontiguous index)
-				#
-				unset "titles[$i]"
-				titles=("${titles[@]}")
-			else
-				bomb \
-					"winid mismatch" \
-					"rpdata:$rpxid" \
-					"titles:$ttxid" \
-				;
-			fi
-		fi
+		gather_rpdata_fields $i
+		gather_xwininfo_fields $i
 
 		# stash the gathered variables in indexed (by
 		# line number from $rpdata[] and $titles[],
