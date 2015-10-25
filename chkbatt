@@ -2,11 +2,23 @@
 #
 # chkbatt
 #   checks battery, flashes screen accordingly (hardcoded thresholds)
-#   (run at intervals with eg crontab -e)
+#   (run at intervals with eg cron)
 #
-# http://smemsh.net/src/chkbatt
-# http://spdx.org/licenses/GPL-2.0
+# deps:
+#   - http://smemsh.net/src/libsh/ (see include and require)
+#   - http://smemsh.net/src/flashscreen/
+#   - only works in xorg
+#
+# stat:
+#   - used in production by author
+#   - please inform author if using
+#
+# todo:
+#   - read settings from an rcfile
+#
 # scott@smemsh.net
+# http://smemsh.net/src/chkbatt/
+# http://spdx.org/licenses/GPL-2.0.html
 #
 ##############################################################################
 
