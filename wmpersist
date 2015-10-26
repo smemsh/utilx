@@ -14,6 +14,8 @@
 #                     match them, once chromium has been
 #                     restarted (typically following a crash,
 #                     which happens frequently)
+# deps:
+#   - http://smemsh.net/src/libsh/ (see include, require)
 #
 # todo:
 #   - make $sep pattern same in both rp and xwininfo data
@@ -30,6 +32,11 @@
 #     windows seems like for eg bookmarks and google contacts
 #     pages that have been closed, see window_is_withdrawn()
 #     test in the code
+#
+# stat:
+#   - used in production by author
+#   - some site-local paths remain
+#   - please notify author if using
 #
 # scott@smemsh.net
 # http://smemsh.net/src/wmpersist
