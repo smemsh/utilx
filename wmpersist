@@ -32,6 +32,12 @@
 #     windows seems like for eg bookmarks and google contacts
 #     pages that have been closed, see window_is_withdrawn()
 #     test in the code
+#   - make work with other things that just browsers (and
+#     other browsers than chromium) but this may not work
+#     since each app keeps highly specific titles
+#   - hack this into ratpoison itself, instead
+#   - or generalize it into a general persistence daemon to be
+#     used for a management framework
 #
 # stat:
 #   - used in production by author
