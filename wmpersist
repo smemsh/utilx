@@ -38,6 +38,7 @@
 #   - hack this into ratpoison itself, instead
 #   - or generalize it into a general persistence daemon to be
 #     used for a management framework
+#   - take class name as command line arg
 #
 # stat:
 #   - used in production by author
@@ -55,7 +56,8 @@ include error
 require setenv
 require now
 
-save_file=~/var/rpwm/wmpersist.dat
+setenv save_file    ~/var/rpwm/wmpersist.dat	# stat file
+setenv classname     'Chromium'			# wm class name
 
 debug=0 # enable for additional prints, etc
 
@@ -107,7 +109,7 @@ function_exists ()
 #
 get_window_rpdata ()
 {
-	local sep='^\d+\sChromium\sChromium\s'
+	local sep="^\\d+\\s${classname}\\s${classname}\\s"
 
 	$rpcmd 'windows %i %a %c %t %n' |
 	grep -P "$sep" |
@@ -126,12 +128,12 @@ get_window_rpdata ()
 #
 get_window_titles ()
 {
-	local sep=$':.*("Chromium"\x20"Chromium")'
+	local sep="(\"$classname\" \"$classname\")"
 
 	xwininfo -int -root -children |
 	grep -P '^\s+\d+\s' |
-	grep "$sep" |
-	awk -F '("Chromium" "Chromium")' '{print $1}' |
+	grep ":.*$sep" |
+	awk -F "$sep" '{print $1}' |
 	sed s,^'[[:space:]]*',, |
 	sort -nrk 1,2
 }
