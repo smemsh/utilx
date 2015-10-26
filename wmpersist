@@ -56,8 +56,10 @@ include error
 require setenv
 require now
 
-setenv save_file    ~/var/rpwm/wmpersist.dat	# stat file
-setenv classname     'Chromium'			# wm class name
+setenv save_file    ~/var/rpwm/wmpersist.dat    # stat file
+setenv classname     'chromium-browser'         # wm class name
+#setenv classname     'Chromium'                # upstream name in debian
+#                                                 before 20151025
 
 debug=0 # enable for additional prints, etc
 
