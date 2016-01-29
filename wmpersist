@@ -14,32 +14,6 @@
 #                     match them, once chromium has been
 #                     restarted (typically following a crash,
 #                     which happens frequently)
-# deps:
-#   - http://smemsh.net/src/libsh/ (see include, require)
-#
-# todo:
-#   - make $sep pattern same in both rp and xwininfo data
-#     gathering functions
-#   - ratpoison needs a target arg available for its window
-#     name change command
-#   - move usage to a constant and emit rather than using
-#     comment block to document
-#   - use debug routines from libsh rather than ad-hoc inline
-#     test-and-print
-#   - this does not work if one of the tabs is a Chromium
-#     bookmark manager, unknown reason, have to trace this down
-#     UPDATE: it may be because Chrome leaves around withdrawn
-#     windows seems like for eg bookmarks and google contacts
-#     pages that have been closed, see window_is_withdrawn()
-#     test in the code
-#   - make work with other things that just browsers (and
-#     other browsers than chromium) but this may not work
-#     since each app keeps highly specific titles
-#   - hack this into ratpoison itself, instead
-#   - or generalize it into a general persistence daemon to be
-#     used for a management framework
-#   - take class name as command line arg
-#
 # stat:
 #   - used in production by author
 #   - some site-local paths remain
