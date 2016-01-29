@@ -533,39 +533,6 @@ load    ()
 			echo
 		fi
 	done
-
-	# OLD WAY -- NOT USED (did this in a separate pass
-	# afterwards using ratpoison, before we changed to
-	# update our maps in-place)
-	#
-	# trying to iterate over window numbers and change
-	# them to new ones causes them to be swapped with each
-	# other, invalidating iteration list order.  instead
-	# of dealing with this we make another loop over the
-	# titles instead, when changing numbers, since that
-	# list has a stable sort order in the face of window
-	# number change.  thankfully ratpoison 'select' can be
-	# given either a number or a title, but this prevents
-	# us from being able to utilize the second-argument
-	# form of 'number' command (which would obviate the
-	# need to switch window first, since we would know
-	# already)
-	#
-	# TODO we might be able to update
-	# $winmap_title_to_number[] in-place while we change
-	# titles (in the previous loop), and then the
-	# iteration by window number wouldn't be wrong and we
-	# wouldn't need to loop a second time (i think?)
-	#
-	# TODO wait, maybe we could just use
-	# $winmap_title_to_name[] which is currently unused
-	# (see its notes)?  or use that one for both loops?
-	# and then factor out the second loop?
-	#
-	#for ((i = 0; i < ${#lines[@]}; i++)); do
-	#	$rpcmd "select $saved_name"
-	#	$rpcmd "number $saved_num"
-	#done
 }
 
 # use to output all properties of all windows during testing
