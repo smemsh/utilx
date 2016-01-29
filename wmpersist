@@ -58,8 +58,8 @@ require now
 
 setenv save_file    ~/var/rpwm/wmpersist.dat    # stat file
 setenv classname     'chromium'                 # wm class name
-#setenv classname    'chromium-browser'         # name in debian < 20160125
-#setenv classname    'Chromium'                 # name in debian < 20151025
+#setenv classname    'chromium-browser'         # name in debian < ~20160125
+#setenv classname    'Chromium'                 # name in debian < ~20151025
 
 debug=0 # enable for additional prints, etc
 
