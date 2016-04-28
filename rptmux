@@ -1,0 +1,189 @@
+#!/bin/bash
+#
+# rptmux
+#   ratpoison tmux key bindings for X
+#
+# desc:
+#   - used to map super-modified keys to tmux commands
+#   - queries running tmux for its keybinds
+#   - translates keys into ratpoison bind format
+#   - writes sourceable ratpoison bindings to tmpfile
+#   - invokes ratpoison to source the file and add the mappings
+#
+# todo:
+#   - processes only 'prefix' keymap
+#
+# stat:
+#   - used by author
+#   - please notify if using
+#
+# scott@smemsh.net
+# http://smemsh.net/src/rptmux/
+# http://spdx.org/licenses/GPL-2.0.html
+#
+##############################################################################
+
+# don't expand pathnames in this script, interacts poorly with emit_mapping()
+set -f
+
+# ratpoison keymap to enter the bindings into
+#
+rpmap=top
+
+# string prefix to insert before the bound keysym, eg a
+# ratpoison modifier (in this case we prefix 'Super' key)
+#
+rppfx='s-'
+
+##############################################################################
+
+#
+# tmux -> xorg
+# key lookup table
+#
+# mappings created manually, starting from:
+#   xmodmap -pke \
+#   | awk '{for (i = 4; i < NF; i++) printf("%s\n", $i)}' \
+#   | sort -u \
+#   | grep -v -e brokenbar -e plusminus \
+#   | grep -E '\<[a-z]{2,}$'
+#
+add_maps_puncts ()
+{
+	charmap[&]=ampersand
+	charmap[\']=apostrophe
+	charmap[^]=asciicircum
+	charmap[\~]=asciitilde
+	charmap[\*]=asterisk
+	charmap[\@]=at
+	charmap[\\]=backslash
+	charmap[|]=bar
+	charmap[{]=braceleft
+	charmap[}]=braceright
+	charmap[\[]=bracketleft
+	charmap[\]]=bracketright
+	charmap[:]=colon
+	charmap[,]=comma
+	charmap[$]=dollar
+	charmap[=]=equal
+	charmap[!]=exclam
+	charmap[\`]=grave
+	charmap[>]=greater
+	charmap[<]=less
+	charmap[-]=minus
+	charmap[#]=numbersign
+	charmap[(]=parenleft
+	charmap[)]=parenright
+	charmap[%]=percent
+	charmap[.]=period
+	charmap[+]=plus
+	charmap[?]=question
+	charmap[\"]=quotedbl
+	charmap[;]=semicolon
+	charmap[/]=slash
+	charmap[_]=underscore
+
+	# fix broken sh syntax highlighting in vim with close-quote
+	# TODO contribute fix for sh.vim
+	#'
+}
+
+# map also the rest of the normal keyboard keys
+# (just ordinary characters bound to themselves)
+#
+add_maps_alnums ()
+{
+	local c
+
+	for c in {0..9} {a..z} {A..Z}; do
+		charmap[$c]=$c; done
+}
+
+##############################################################################
+
+emit_mapping ()
+{
+	local key
+	local cmd
+
+	# eat the initial 'bind-key' from tmux list-keys
+	shift
+
+	# first arg may be a 'bind-key' argument (like '-r')
+	# which we do not support; only simple binds, no flags
+	# supported
+	# UPDATE: in v2.1, tmux adds '-T <keymap>' to every
+	# command, we disregard this from the input by
+	# shifting past it (and only keymap we want to
+	# interact with at all is '-T prefix', the rest we
+	# ignore altogether)
+	#
+	if [[ ${1:0:1} == '-' ]]
+	then
+		if [[ ${1:1:1} == T ]]
+		then shift 2
+		else return
+		fi
+	fi
+	key=$1; shift
+
+	# remainder of the line is tmux command mapped to that key
+	#
+	cmd="$*"
+
+	# this hack accommodates need for escaping quote character because
+	# ratpoison will give this to 'sh -c' but some of the tmux binds have
+	# naked "#" escapes
+	#
+	# NOTE: this hack is also broken, because some of them are already
+	# quoted, so in those cases it will result in a backslash shown in the
+	# prompt (affects quoted command-prompts with embedded tmux expands),
+	# and may entirely break other cases (not present in our config yet)
+	# but fixing this would require keeping track of quoted state and we
+	# do not care enough about spurious backslashes appearing in the prompt
+	# to spend time implementing this (ie, it's good enough for now)
+	#
+	cmd="${cmd/\#/\\#}"
+
+	# we only handle single-char mappings; in our tmuxrc,
+	# only a couple rarely-used binds are chords or
+	# symbolics, so those mappings can be skipped for now;
+	#
+	# TODO: can ratpoison even emit eg control-x ? we should handle
+	# arbitrary key sequences if so
+	#
+	((${#key} > 1)) &&
+		continue
+
+	#
+	echo "definekey $rpmap $rppfx${charmap[$key]} exec tmux $cmd"
+}
+
+emit_mappings ()
+{
+	local line
+
+	tmux list-keys \
+	| while read line; do
+		emit_mapping $line; done
+}
+
+##############################################################################
+
+main ()
+{
+	local tmpfile
+	declare -A charmap
+
+	add_maps_puncts
+	add_maps_alnums
+
+	tmpfile=`mktemp`
+	emit_mappings >| $tmpfile
+	ratpoison -c "source $tmpfile"
+	rm $tmpfile
+}
+
+###
+
+main "$@"

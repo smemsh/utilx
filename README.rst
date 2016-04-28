@@ -1,18 +1,28 @@
-wmpersist
+ratutils
 ==============================================================================
 
-Ratpoison (and Chrome) -specific script to preserve browser window
-titles across restarts of browser or ratpoison.
+Collection of some scripts to interact with Ratpoison window
+manager.  So far there are:
 
-(will actually work with any program, but has hardcoded class name for
-chromium at the moment)
+`wmpersist`_
+    Ratpoison (and Chrome) -specific script to preserve browser window
+    titles across restarts of browser or ratpoison.  Will
+    actually work with any program, but has hardcoded class name
+    for chromium at the moment.
+
+`rptmux`_
+    Emit ratpoison key mappings off Xorg's Super modifier that
+    map to tmux prefix-key command sequences.  Running tmux is
+    queried for its bindings, and the mapped commands are then
+    re-mapped in Ratpoison, which means no longer are two
+    separate keypresses needed.
 
 | scott@smemsh.net
 | http://smemsh.net/src/wmpersist/
 | http://spdx.org/licenses/GPL-2.0
 
 
-Description
+wmpersist
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The script persists browser window titles across restarts.  Useful for
@@ -33,7 +43,7 @@ Ratpoison does not itself have any persistence mechanism.
 
 
 Usage
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------------------------------------------------------
 
 :"wmpersist save":
     write out chromium window titles to ratpoison winname mappings
@@ -62,7 +72,7 @@ open (Chrome can be so configured, i.e. *"start where I left off."*)
 
 
 Dependencies
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------------------------------------------------------
 
 The script uses the following commands:
 
@@ -86,7 +96,7 @@ __ libsh_
 
 
 TODO
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------------------------------------------------------
 
 - make $sep pattern same in both rp and xwininfo data gathering
   functions
@@ -109,10 +119,25 @@ TODO
 - take class name as command line arg
 - support other window managers
 
+rptmux
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Queries the running tmux (must be run within) for its current
+key bindings.  Takes each command found in the ``prefix`` keymap
+(i.e. the ``-T prefix`` binds), finds out what tmux executes
+when the key is pressed, and then runs that as an external
+``exec`` command, with its tmux map suffix prefixed by Super key
+in Ratpoison.
+
+Example: the ``C-b ;`` default tmux binding will get a Ratpoison
+map: ``Super-semicolon`` to ``exec tmux last-pane``.
+
+All non-prefix maps in tmux are ignored.
+
 
 Status
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - used by author regularly
-- some site-local paths remain
+- some site-local hardcodes remain
 - please notify author if using
