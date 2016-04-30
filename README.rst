@@ -18,7 +18,7 @@ manager.  So far there are:
     separate keypresses needed.
 
 | scott@smemsh.net
-| http://smemsh.net/src/wmpersist/
+| http://smemsh.net/src/ratutils/
 | http://spdx.org/licenses/GPL-2.0
 
 
