@@ -42,7 +42,7 @@ save file are retained each time a new save is done.
 Ratpoison does not itself have any persistence mechanism.
 
 
-Usage
+usage
 ------------------------------------------------------------------------------
 
 :"wmpersist save":
@@ -71,7 +71,7 @@ open (Chrome can be so configured, i.e. *"start where I left off."*)
 - you want to persist something other than Chrome
 
 
-Dependencies
+dependencies
 ------------------------------------------------------------------------------
 
 The script uses the following commands:
@@ -95,7 +95,7 @@ You'll need to do one of the following:
 __ libsh_
 
 
-TODO
+todo
 ------------------------------------------------------------------------------
 
 - make $sep pattern same in both rp and xwininfo data gathering
@@ -135,7 +135,7 @@ map: ``Super-semicolon`` to ``exec tmux last-pane``.
 All non-prefix maps in tmux are ignored.
 
 
-Status
+status
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - used by author regularly
