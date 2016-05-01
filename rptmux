@@ -52,42 +52,38 @@ rppfx='s-'
 #
 add_maps_puncts ()
 {
-	charmap[&]=ampersand
-	charmap[\']=apostrophe
-	charmap[^]=asciicircum
-	charmap[\~]=asciitilde
-	charmap[\*]=asterisk
-	charmap[\@]=at
-	charmap[\\]=backslash
-	charmap[|]=bar
-	charmap[{]=braceleft
-	charmap[}]=braceright
-	charmap[\[]=bracketleft
-	charmap[\]]=bracketright
-	charmap[:]=colon
-	charmap[,]=comma
-	charmap[$]=dollar
-	charmap[=]=equal
-	charmap[!]=exclam
-	charmap[\`]=grave
-	charmap[>]=greater
-	charmap[<]=less
-	charmap[-]=minus
-	charmap[#]=numbersign
-	charmap[(]=parenleft
-	charmap[)]=parenright
-	charmap[%]=percent
-	charmap[.]=period
-	charmap[+]=plus
-	charmap[?]=question
-	charmap[\"]=quotedbl
-	charmap[;]=semicolon
-	charmap[/]=slash
-	charmap[_]=underscore
-
-	# fix broken sh syntax highlighting in vim with close-quote
-	# TODO contribute fix for sh.vim
-	#'
+	charmap['&']=ampersand
+	charmap["'"]=apostrophe
+	charmap['^']=asciicircum
+	charmap['~']=asciitilde
+	charmap['*']=asterisk
+	charmap['@']=at
+	charmap['\']=backslash
+	charmap['|']=bar
+	charmap['{']=braceleft
+	charmap['}']=braceright
+	charmap['[']=bracketleft
+	charmap[']']=bracketright
+	charmap[':']=colon
+	charmap[',']=comma
+	charmap['$']=dollar
+	charmap['=']=equal
+	charmap['!']=exclam
+	charmap['`']=grave
+	charmap['>']=greater
+	charmap['<']=less
+	charmap['-']=minus
+	charmap['#']=numbersign
+	charmap['(']=parenleft
+	charmap[')']=parenright
+	charmap['%']=percent
+	charmap['.']=period
+	charmap['+']=plus
+	charmap['?']=question
+	charmap['"']=quotedbl
+	charmap[';']=semicolon
+	charmap['/']=slash
+	charmap['_']=underscore
 }
 
 # map also the rest of the normal keyboard keys
