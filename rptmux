@@ -5,13 +5,15 @@
 #
 # desc:
 #   - used to map super-modified keys to tmux commands
-#   - queries running tmux for its keybinds
+#   - queries running tmux for its keybinds (not needed, see todo)
 #   - translates keys into ratpoison bind format
 #   - writes the sourceable ratpoison bindings to tmpfile
 #   - invokes ratpoison to source the file, which adds the mappings
 #
 # todo:
 #   - processes only 'prefix' keymap from tmux, ignores rest
+#   - tmux-2.2: "list-keys and list-commands can be run without starting the
+#     tmux server" so use that, i.e. no longer need to run within tmux
 #
 # stat:
 #   - used by author
