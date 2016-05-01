@@ -7,11 +7,11 @@
 #   - used to map super-modified keys to tmux commands
 #   - queries running tmux for its keybinds
 #   - translates keys into ratpoison bind format
-#   - writes sourceable ratpoison bindings to tmpfile
-#   - invokes ratpoison to source the file and add the mappings
+#   - writes the sourceable ratpoison bindings to tmpfile
+#   - invokes ratpoison to source the file, which adds the mappings
 #
 # todo:
-#   - processes only 'prefix' keymap
+#   - processes only 'prefix' keymap from tmux, ignores rest
 #
 # stat:
 #   - used by author
@@ -110,13 +110,15 @@ emit_mapping ()
 	shift
 
 	# first arg may be a 'bind-key' argument (like '-r')
-	# which we do not support; only simple binds, no flags
-	# supported
+	#   which we do not support, only simple binds, no flags
+	#   supported
 	# UPDATE: in v2.1, tmux adds '-T <keymap>' to every
-	# command, we disregard this from the input by
-	# shifting past it (and only keymap we want to
-	# interact with at all is '-T prefix', the rest we
-	# ignore altogether)
+	#   command, we disregard this from the input by
+	#   shifting past it (and only keymap we want to
+	#   interact with at all is '-T prefix', the rest we
+	#   ignore altogether)
+	# TODO: if ever there is "-T map -r" instead of "-r -T
+	#   map" this would break... can this happen?)
 	#
 	if [[ ${1:0:1} == '-' ]]
 	then
@@ -170,6 +172,8 @@ emit_mappings ()
 
 ##############################################################################
 
+# generate the mappings and source them into ratpoison
+#
 main ()
 {
 	local tmpfile
@@ -183,7 +187,5 @@ main ()
 	ratpoison -c "source $tmpfile"
 	rm $tmpfile
 }
-
-###
 
 main "$@"
