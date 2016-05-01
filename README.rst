@@ -5,8 +5,8 @@ Collection of some scripts to interact with Ratpoison window
 manager.  So far there are:
 
 `wmpersist`_
-    Ratpoison (and Chrome) -specific script to preserve browser window
-    titles across restarts of browser or ratpoison.  Will
+    Ratpoison (and Chrome) -specific script to preserve browser
+    window titles across restarts of browser or ratpoison.  Will
     actually work with any program, but has hardcoded class name
     for chromium at the moment.
 
