@@ -25,6 +25,13 @@ manager.  So far there are:
 | scott@smemsh.net
 | http://smemsh.net/src/ratutils/
 | http://spdx.org/licenses/GPL-2.0
+|
+
+status:
+
+- used by author regularly
+- some site-local hardcodes remain
+- please notify author if using
 
 
 wmpersist
@@ -168,11 +175,3 @@ Note that the sleep only occurs in-between, not at the end.
 This command is used by `rptmux`_ to emit the tmux keybindings
 it learns about, bound to *Super* key instead of the tmux
 prefix.
-
-
-status
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-- used by author regularly
-- some site-local hardcodes remain
-- please notify author if using
