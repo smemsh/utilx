@@ -17,6 +17,11 @@ manager.  So far there are:
     re-mapped in Ratpoison, which means no longer are two
     separate keypresses needed.
 
+`rpmeta`_
+    Wraps "ratpoison -c meta" to allow sending multiple meta
+    keys with a short sleep in between (which should help with
+    various terminals... not sure if this is needed in practice)
+
 | scott@smemsh.net
 | http://smemsh.net/src/ratutils/
 | http://spdx.org/licenses/GPL-2.0
@@ -119,20 +124,50 @@ todo
 - take class name as command line arg
 - support other window managers
 
+
 rptmux
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Queries the running tmux (must be run within) for its current
-key bindings.  Takes each command found in the ``prefix`` keymap
-(i.e. the ``-T prefix`` binds), finds out what tmux executes
-when the key is pressed, and then runs that as an external
-``exec`` command, with its tmux map suffix prefixed by Super key
-in Ratpoison.
+key bindings.  Takes each key binding found in the ``prefix``
+keymap (i.e. the ``-T prefix`` binds), and makes a Ratpoison
+mapping to emit the tmux prefix followed by that binding, bound
+to Super modifier
 
-Example: the ``C-b ;`` default tmux binding will get a Ratpoison
-map: ``Super-semicolon`` to ``exec tmux last-pane``.
+
+Example::
+
+    $ tmux list-keys | grep last-window
+    bind-key -T prefix l last-window
+
+    $ ratpoison -c 'help top' | grep s-l
+    s-l exec rpmeta C-b l
+
+Unfortunately Ratpoison does not allow compound commands in
+keymaps, so we must fork out to a script (here we use the
+`rpmeta`_ helper also found in these utilities).
 
 All non-prefix maps in tmux are ignored.
+
+
+rpmeta
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Wrapper allowing several successive calls of the ratpoison
+`meta` command, essentially::
+
+    ratpoison -c arg1
+    sleep 0.01s
+    ratpoison -c arg2
+    sleep 0.01s
+    ...
+    ratpoison -c argN
+
+Note that the sleep only occurs in-between, not at the end.
+
+This command is used by `rptmux`_ to emit the tmux keybindings
+it learns about, bound to *Super* key instead of the tmux
+prefix.
 
 
 status

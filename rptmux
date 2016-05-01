@@ -1,12 +1,12 @@
 #!/bin/bash
 #
 # rptmux
-#   ratpoison tmux key bindings for X
+#   adds ratpoison keymaps to generate tmux-bound keypresses off Super modkey
 #
 # desc:
-#   - used to map super-modified keys to tmux commands
 #   - queries running tmux for its keybinds (not needed, see todo)
-#   - translates keys into ratpoison bind format
+#   - generates ratpoison binds off super for the unprefixed tmux key
+#   - emits the keys by executing 'rpmeta' wrapper
 #   - writes the sourceable ratpoison bindings to tmpfile
 #   - invokes ratpoison to source the file, which adds the mappings
 #
@@ -14,6 +14,15 @@
 #   - processes only 'prefix' keymap from tmux, ignores rest
 #   - tmux-2.2: "list-keys and list-commands can be run without starting the
 #     tmux server" so use that, i.e. no longer need to run within tmux
+#
+# note:
+#   old way we did this was to actually execute the tmux command; we do
+#   not do that anymore because it doesn't know which session to target,
+#   so if we have multiple clients attached to different sessions, only
+#   the first one will get it, which would require that we look up the
+#   terminal -> pid -> client -> session mapping, which is more
+#   difficult, so we just emit a keypress instead (much easier) which
+#   works with whatever client we are connected with at present moment
 #
 # stat:
 #   - used by author
@@ -32,10 +41,27 @@ set -f
 #
 rpmap=top
 
+# name of "ratpoison -c meta" command wrapper
+#
+rpmetacmd=rpmeta
+
 # string prefix to insert before the bound keysym, eg a
 # ratpoison modifier (in this case we prefix 'Super' key)
+# todo: specify it, either as arg, env, rcfile
 #
 rppfx='s-'
+
+# this is the '-T <map>' tmux map that we rebind using the
+# Super prefix; any tmux keys in other maps (ie root map) will
+# be ignored for the time being
+#
+tmuxmap='prefix'
+
+# prefix we want to emit (give to rpmeta), this should
+# correspond to the tmux prefix in ratpoison parlance (todo:
+# query it from tmux instead of having to specify it here)
+#
+tmuxpfx='C-q'
 
 ##############################################################################
 
@@ -103,6 +129,7 @@ emit_mapping ()
 {
 	local key
 	local cmd
+	local mapped
 
 	# eat the initial 'bind-key' from tmux list-keys
 	shift
@@ -118,32 +145,9 @@ emit_mapping ()
 	# TODO: if ever there is "-T map -r" instead of "-r -T
 	#   map" this would break... can this happen?)
 	#
-	if [[ ${1:0:1} == '-' ]]
-	then
-		if [[ ${1:1:1} == T ]]
-		then shift 2
-		else return
-		fi
-	fi
-	key=$1; shift
-
-	# remainder of the line is tmux command mapped to that key
-	#
-	cmd="$*"
-
-	# this hack accommodates need for escaping quote character because
-	# ratpoison will give this to 'sh -c' but some of the tmux binds have
-	# naked "#" escapes
-	#
-	# NOTE: this hack is also broken, because some of them are already
-	# quoted, so in those cases it will result in a backslash shown in the
-	# prompt (affects quoted command-prompts with embedded tmux expands),
-	# and may entirely break other cases (not present in our config yet)
-	# but fixing this would require keeping track of quoted state and we
-	# do not care enough about spurious backslashes appearing in the prompt
-	# to spend time implementing this (ie, it's good enough for now)
-	#
-	cmd="${cmd/\#/\\#}"
+	if [[ "$1 $2" == "-T $tmuxmap" ]]
+	then key=$3
+	else return; fi
 
 	# we only handle single-char mappings; in our tmuxrc,
 	# only a couple rarely-used binds are chords or
@@ -155,8 +159,13 @@ emit_mapping ()
 	((${#key} > 1)) &&
 		continue
 
+	# new way calls our 'rpmeta' command, which simply emits the key
 	#
-	echo "definekey $rpmap $rppfx${charmap[$key]} exec tmux $cmd"
+	mapped=${charmap[$key]}
+	execmd="$rpmetacmd $tmuxpfx $mapped"
+	echo "echo definekey $rpmap $rppfx$mapped exec $execmd"
+	echo "definekey $rpmap $rppfx$mapped exec $execmd"
+	echo "time"
 }
 
 emit_mappings ()

@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+#
+# rpmeta
+#   wraps successive "ratpoison -c meta <key>" calls with small sleep between
+#
+# args
+#   - any number of ratpoison-format key names to generate
+#
+# todo:
+#   - fork+exec alone is enough so that sleep isn't actually needed (tested)
+#   - ratpoison 'meta' should just be hacked to take multiple keys
+#
+##############################################################################
+
+sleep_interval='0.01s'
+
+main ()
+{
+	# we use a loop construct with no sleep after last
+	# iteration, only in-between
+	#
+	local i=1
+	while true
+	do
+		key=${!i}
+		ratpoison -c "meta $key"
+		if ((++i <= $#)); then
+			sleep $sleep_interval
+			continue
+		else
+			break
+		fi
+	done
+}
+
+main "$@"
