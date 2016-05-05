@@ -37,6 +37,10 @@
 # don't expand pathnames in this script, interacts poorly with emit_mapping()
 set -f
 
+# maps between tmux charnames and ratpoison/xorg keysym names
+#
+declare -A charmap      # keychars -> keysyms
+
 # ratpoison keymap to enter the bindings into
 #
 rpmap=top
@@ -184,7 +188,6 @@ emit_mappings ()
 main ()
 {
 	local tmpfile
-	declare -A charmap
 
 	add_maps_puncts
 	add_maps_alnums
