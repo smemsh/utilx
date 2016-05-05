@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # rptmux
 #   adds ratpoison keymaps to generate tmux-bound keypresses off Super modkey
