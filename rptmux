@@ -40,6 +40,7 @@ set -f
 # maps between tmux charnames and ratpoison/xorg keysym names
 #
 declare -A charmap      # keychars -> keysyms
+declare -A shiftmap     # as charmap if needs shifting, cf add_maps_puncts()
 
 # ratpoison keymap to enter the bindings into
 #
@@ -82,38 +83,68 @@ tmuxpfx='C-q'
 #
 add_maps_puncts ()
 {
-	charmap['&']=ampersand
-	charmap["'"]=apostrophe
-	charmap['^']=asciicircum
-	charmap['~']=asciitilde
-	charmap['*']=asterisk
-	charmap['@']=at
-	charmap['\']=backslash
-	charmap['|']=bar
-	charmap['{']=braceleft
-	charmap['}']=braceright
-	charmap['[']=bracketleft
-	charmap[']']=bracketright
-	charmap[':']=colon
-	charmap[',']=comma
-	charmap['$']=dollar
-	charmap['=']=equal
-	charmap['!']=exclam
-	charmap['`']=grave
-	charmap['>']=greater
-	charmap['<']=less
-	charmap['-']=minus
-	charmap['#']=numbersign
-	charmap['(']=parenleft
-	charmap[')']=parenright
-	charmap['%']=percent
-	charmap['.']=period
-	charmap['+']=plus
-	charmap['?']=question
-	charmap['"']=quotedbl
+	local arraykey
+
 	charmap[';']=semicolon
 	charmap['/']=slash
-	charmap['_']=underscore
+	charmap['.']=period
+	charmap['-']=minus
+	charmap['`']=grave
+	charmap['=']=equal
+	charmap[',']=comma
+	charmap['[']=bracketleft
+	charmap[']']=bracketright
+	charmap["'"]=apostrophe
+	charmap['\']=backslash
+
+	# ratpoison acts on "meta" using the following sequence:
+	#
+	#   (1) reads what keysym name given to "meta"
+	#   (2) looks it up with XStringToKeysym()
+	#       (example "quotedbl" -> 34 (0x22), see <X11/keysymdef.h>)
+	#   (3) gets a platform keycode using XKeysymToKeycode()
+	#       (34 -> 48, which can be seem with "xmodmap -pke")
+	#   (4) uses this to issue an XSendEvent()
+	#
+	# however, it isn't smart enough to figure out when it has to
+	# send shifted ones, so it always issues the very first
+	# (unmodified) keycode.  example:
+	#
+	#   $ xmodmap -pke | grep quotedbl
+	#   keycode  48 = apostrophe quotedbl apostrophe quotedbl
+	#
+	# so "ratpoison -c 'meta quotedbl'" will inject an apostrophe,
+	# not a quotedbl.  to fix this, we have to manually add shift
+	# prefixes ourselves for those keys which hang off the shift
+	# modifier, and we do this by using a separate dictionary for
+	# shifted keys only
+	#
+	# TODO ideally this would be fixed in ratpoison, because
+	# "S-quotedbl" is redundant (it's the same as "S-apostrophe",
+	# but "quotedbl" is the same as apostrophe according to
+	# ratpoison, it does not have enough awareness)
+	#
+	shiftmap['&']=ampersand
+	shiftmap['^']=asciicircum
+	shiftmap['~']=asciitilde
+	shiftmap['*']=asterisk
+	shiftmap['@']=at
+	shiftmap['|']=bar
+	shiftmap['{']=braceleft
+	shiftmap['}']=braceright
+	shiftmap[':']=colon
+	shiftmap['$']=dollar
+	shiftmap['!']=exclam
+	shiftmap['>']=greater
+	shiftmap['<']=less
+	shiftmap['#']=numbersign
+	shiftmap['(']=parenleft
+	shiftmap[')']=parenright
+	shiftmap['%']=percent
+	shiftmap['+']=plus
+	shiftmap['?']=question
+	shiftmap['"']=quotedbl
+	shiftmap['_']=underscore
 }
 
 # map also the rest of the normal keyboard keys
@@ -123,8 +154,11 @@ add_maps_alnums ()
 {
 	local c
 
-	for c in {0..9} {a..z} {A..Z}; do
+	for c in {0..9} {a..z}; do
 		charmap[$c]=$c; done
+	
+	for c in {A..Z}; do
+		shiftmap[$c]=$c; done
 }
 
 ##############################################################################
@@ -164,12 +198,14 @@ emit_mapping ()
 		continue
 
 	# new way calls our 'rpmeta' command, which simply emits the key
+	# (with added 'S-' prefix if need be; see add_maps_puncts())
 	#
-	mapped=${charmap[$key]}
-	execmd="$rpmetacmd $tmuxpfx $mapped"
-	echo "echo definekey $rpmap $rppfx$mapped exec $execmd"
-	echo "definekey $rpmap $rppfx$mapped exec $execmd"
-	echo "time"
+	mapped=${charmap[$key]:-${shiftmap[$key]}}
+	shiftmapped=${shiftmap[$key]:+'S-'}$mapped
+	execmd="$rpmetacmd $tmuxpfx $shiftmapped"
+	definecmd="definekey $rpmap $rppfx$mapped exec $execmd"
+	echo "echo $definecmd"	# show progress to the user as we go
+	echo "$definecmd"
 }
 
 emit_mappings ()
