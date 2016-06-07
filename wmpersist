@@ -35,7 +35,8 @@ setenv classname     'chromium'                 # wm class name
 #setenv classname    'chromium-browser'         # name in debian < ~20160125
 #setenv classname    'Chromium'                 # name in debian < ~20151025
 
-debug=0 # enable for additional prints, etc
+# enable for additional prints, etc
+debug=${debug:-0}
 
 if ((debug))
 then
