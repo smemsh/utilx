@@ -180,10 +180,12 @@ gather_data ()
 
 	# and then also save fields we want from the xwininfo
 	# output, taking care to ignore withdrawn windows
-	# (keep iterating until we find one not withdrawn)
 	#
 	gather_xwininfo_fields ()
 	{
+		# keep iterating until we find one not withdrawn, in
+		# usual case this loop runs only once
+		#
 		while [[ ${titles[i]} ]]
 		do
 			setenv pattern \
@@ -248,13 +250,16 @@ gather_data ()
 			else
 				# either this is a restore and
 				# $should_match is false, or we have a
-				# good match; either way, we're done
+				# good pattern match; either way, done
 				#
 				return
 			fi
 		done
 
-		bomb "walked off end of $titles[] without a match"
+		# we ran out of withdrawn windows to shift without
+		# finding the one corresponding to $rpdata[i]
+		#
+		bomb "shifted $titles[] until no more, without finding match"
 	}
 
 	######################################################################
