@@ -345,17 +345,12 @@ gather_data ()
 		declare -p winmap_title_to_number >> $debug_file
 	fi
 
-	# verify no more leftover: we should be at the end of
-	# both rpdata[] and titles[], because they should
-	# represent the same set of windows (on save), but we
-	# want to make sure a new window did not creep in
-	# after we got rpdata but before we got titles (we
-	# keyed off ${#rpdata[@]} to determine iteration count
-	# for above loop)
-	#
-	if ((should_match)); then
-		if ! ((i == ${#titles[@]})); then
-			bomb "title mismatch"; fi; fi
+	# any remaining windows in $titles[] are not known to
+	# ratpoison: either withdrawn -- and therefore can be
+	# ignored -- or new, in which case we also just ignore
+	# them (wouldn't be windows for us anyways since we the
+	# operator aren't trying to race our script against new
+	# browser windows), so we can safely exit now
 }
 
 ##############################################################################
