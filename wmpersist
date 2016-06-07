@@ -182,8 +182,6 @@ gather_data ()
 	# output, taking care to ignore withdrawn windows
 	# (keep iterating until we find one not withdrawn)
 	#
-	# TODO: this routine is too long and too heavily commented
-	#
 	gather_xwininfo_fields ()
 	{
 		while [[ ${titles[i]} ]]
