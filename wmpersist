@@ -194,6 +194,35 @@ gather_data ()
 			ttxid=${BASH_REMATCH[1]}
 			title=${BASH_REMATCH[2]}
 
+			# ratpoison will not list withdrawn windows,
+			# which chrome seems to leave around sometimes
+			# (causing a mismatch or one list longer than
+			# the other if last element) so check if this is
+			# the case
+			#
+			if window_is_withdrawn $ttxid
+			then
+				# withdrawn windows can just be ignored,
+				# since they are not visible to the user
+				# anyways
+				#
+				((debug)) && echo "ignoring $ttxid"
+
+				# however, now we need to rebuild the
+				# $titles[] array without this bogus
+				# entry
+				#
+				unset "titles[i]"
+				titles=("${titles[@]}")
+
+				# restart at top to try again for
+				# a match that isn't withdrawn; again,
+				# this "loop" usually runs only once
+				# (this is the only looping point)
+				#
+				continue
+			fi
+
 			# on save, the two arrays $rpdata[] and
 			# $titles[] should have the same windows in the
 			# same order with different data but the first
@@ -202,49 +231,20 @@ gather_data ()
 			# field) to be sure they are the same: a small
 			# race window exists between collecting the
 			# window data from ratpoison, and from xwininfo,
-			# when a new window could have been created, and
-			# also, this might be a withdrawn window
-			# TODO maybe test for withdrawn before even
-			# doing this
+			# when a new window could have been created
 			#
 			if ((should_match && rpxid != ttxid))
 			then
-				# ratpoison will not list withdrawn
-				# windows, which chrome seems to leave
-				# around sometimes (causing a mismatch)
-				# so check if this is the case
+				# we cannot explain the mismatch as a
+				# withdrawn window (already tested for)
+				# so probably a new window was created
+				# during race window (unhandled; abort)
 				#
-				if window_is_withdrawn $ttxid
-				then
-					# withdrawn windows can just be
-					# ignored, since they are not
-					# visible to the user anyways
-					#
-					((debug)) && echo "ignoring $ttxid"
-
-					# however, now we need to
-					# rebuild the $titles[] array
-					# without this bogus entry
-					#
-					unset "titles[$i]"
-					titles=("${titles[@]}")
-
-					# loop to try again for match
-					#
-					continue
-				else
-					# we cannot explain the mismatch
-					# as a withdrawn window so
-					# probably a new window was
-					# created during race window
-					# (unhandled; abort)
-					#
-					bomb \
-						"winid mismatch" \
-						"rpdata:$rpxid" \
-						"titles:$ttxid" \
-					;
-				fi
+				bomb \
+					"winid mismatch" \
+					"rpdata:$rpxid" \
+					"titles:$ttxid" \
+				;
 			else
 				# either this is a restore and
 				# $should_match is false, or we have a
