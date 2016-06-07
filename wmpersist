@@ -292,8 +292,8 @@ gather_data ()
 
 	for ((i = 0; i < nwins; i++))
 	do
-		gather_rpdata_fields $i
-		gather_xwininfo_fields $i
+		gather_rpdata_fields
+		gather_xwininfo_fields
 
 		# stash the gathered variables in indexed (by
 		# line number from $rpdata[] and $titles[],
