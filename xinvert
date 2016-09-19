@@ -1,0 +1,12 @@
+#!/bin/sh
+#
+# xinvert
+#   reverses all colors anywhere on the xorg screen chosen by $DISPLAY
+#
+# scott@smemsh.net
+# http://smemsh.net/src/ratutils/
+# http://spdx.org/licenses/GPL-2.0
+#
+# credit: snarfed from http://askubuntu.com/questions/181419/
+#
+xcalib -invert -alter
