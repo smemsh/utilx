@@ -1,0 +1,40 @@
+#!/bin/bash
+#
+# xflashscreen
+#   flashes xorg screen $1 times for $2 ms
+#
+# args:
+#   - $1 inversions
+#   - $2 milliseconds to sleep between 2 successive inversions
+#
+# deps:
+#   - http://smemsh.net/src/ratutils/xinvert
+#   - http://smemsh.net/src/libsh (see include and require)
+#
+# stat:
+#   - used in production by author
+#   - please notify author if using
+#
+# scott@smemsh.net
+# http://smemsh.net/src/ratutils/
+# http://spdx.org/licenses/GPL-2.0
+#
+##############################################################################
+
+source ~/lib/sh/include
+require msleep
+
+main ()
+{
+	local i iters sleep
+
+	iters=$((${1:?} * 2)) # invert twice to return to normal
+	sleep=$((${2:?} / 2)) # sleep ms between full cycles (two inversions)
+
+	for ((i = 0; i < iters; i++)); do
+		DISPLAY=${DISPLAY:-':0'} xinvert
+		msleep $sleep
+	done
+}
+
+main "$@"
