@@ -22,6 +22,14 @@ manager.  So far there are:
     keys with a short sleep in between (which should help with
     various terminals... not sure if this is needed in practice)
 
+Also there some more generic utilities for working in xwindows
+which we'll store here for now since they're used for pseudo
+"desktop environment" type stuff whilst in ratpoison:
+
+:`chkbatt`: increasing screenflashes as battery drains
+
+____
+
 | scott@smemsh.net
 | http://smemsh.net/src/ratutils/
 | http://spdx.org/licenses/GPL-2.0
