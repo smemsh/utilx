@@ -6,7 +6,7 @@
 #
 # deps:
 #   - http://smemsh.net/src/libsh/ (see include and require)
-#   - http://smemsh.net/src/flashscreen/
+#   - http://smemsh.net/src/ratutils/xflashscreen
 #   - only works in xorg
 #
 # stat:
@@ -17,8 +17,8 @@
 #   - read settings from an rcfile
 #
 # scott@smemsh.net
-# http://smemsh.net/src/chkbatt/
-# http://spdx.org/licenses/GPL-2.0.html
+# http://smemsh.net/src/ratutils/
+# http://spdx.org/licenses/GPL-2.0
 #
 ##############################################################################
 
@@ -68,7 +68,7 @@ main ()
 	setenv level	`determine_threshold`
 	setenv flashes	${flashes[level-1]}
 
-	flashscreen $flashes $flashms ||
+	xflashscreen $flashes $flashms ||
 		bomb "error executing screen flasher"
 }
 
