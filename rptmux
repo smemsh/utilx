@@ -204,7 +204,6 @@ emit_mapping ()
 	shiftmapped=${shiftmap[$key]:+'S-'}$mapped
 	execmd="$rpmetacmd $tmuxpfx $shiftmapped"
 	definecmd="definekey $rpmap $rppfx$mapped exec $execmd"
-	echo "echo $definecmd"	# show progress to the user as we go
 	echo "$definecmd"
 }
 
