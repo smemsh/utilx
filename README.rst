@@ -28,6 +28,7 @@ which we'll store here for now since they're used for pseudo
 
 :`chkbatt`: increasing screenflashes as battery drains
 :`xtty.sh`: switch x11 window by tty or pid
+:`tmuxtty.sh`: switch tmux window by tty or pid
 
 ____
 
