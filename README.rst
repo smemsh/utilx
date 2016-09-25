@@ -27,6 +27,7 @@ which we'll store here for now since they're used for pseudo
 "desktop environment" type stuff whilst in ratpoison:
 
 :`chkbatt`: increasing screenflashes as battery drains
+:`xtty.sh`: switch x11 window by tty or pid
 
 ____
 
@@ -94,7 +95,7 @@ open (Chrome can be so configured, i.e. *"start where I left off."*)
 dependencies
 ------------------------------------------------------------------------------
 
-The script uses the following commands:
+The scripts use the following commands:
 
 - ratpoison (query and set window numbers)
 - xwininfo (gather all window titles)
@@ -102,7 +103,7 @@ The script uses the following commands:
 - xlsatoms (debugging)
 - lsw (debugging)
 
-Also, the script uses some routines from my shell script library,
+Also, the scripts use some routines from my shell script library,
 libsh_, but those routines could be added directly to the script.
 You'll need to do one of the following:
 
