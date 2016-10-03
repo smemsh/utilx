@@ -16,16 +16,29 @@ brightnow=$(<$ctlnow)
 
 main ()
 {
-	if (($# == 0)); then echo $brightnow%
-	elif (($# == 1)); then
-		if [[ $1 =~ [^[:digit:]] ]]
-		then echo "digits only please"; false
-		elif (($1 <= 10))
-		then echo $(($1 * 10)) > $ctlfile
-		elif (($1 <= 100))
-		then echo $1 > $ctlfile
-		else echo "unknown invocation"; false
-		fi
+	if (($# == 0)); then
+		echo $brightnow%
+
+	elif (($# != 1)); then
+		echo only 0 or 1 arg supported; false
+
+	elif [[ $1 == 'up' ]]; then
+		echo $(($brightnow + 10)) > $ctlfile
+
+	elif [[ $1 == 'down' ]]; then
+		echo $(($brightnow - 10)) > $ctlfile
+
+	elif [[ $1 =~ [^[:digit:]] ]]; then
+		echo "digits only please"; false
+
+	elif (($1 <= 10)); then
+		echo $(($1 * 10)) > $ctlfile
+
+	elif (($1 <= 100)); then
+		echo $1 > $ctlfile
+
+	else
+		echo "unknown invocation"; false
 	fi
 }
 
