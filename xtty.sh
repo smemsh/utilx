@@ -63,15 +63,12 @@ xtty ()
 	local idvar idnum display
 	local psarg userarg pidarg
 
-	(($# == 1)) ||
-		bomb "takes single pid or tty argument"
-
 	psarg="$1"
 	userarg="$2"
 	pidarg=`getpid $psarg $userarg`
 
 	display=`pidenv $pidarg DISPLAY`
-	idvar=`pidenv $pidarg WINDOWID
+	idvar=`pidenv $pidarg WINDOWID`
 	idnum=${idvar#*=} || bomb "pidenv(): malformed output"
 	eval $display wmctrl -ia $idnum || bomb "wmctrl"
 }
@@ -83,8 +80,11 @@ main ()
 	local invname=$1 userarg=$2; shift
 	local invlast3=${invname: -3:3}
 
+	(($# == 1)) ||
+		bomb "takes single pid or tty argument"
+
 	if [[ $invname == 'xttyx' ]]; then [[ $DISPLAY ]] || xttyx
-	elif [[ $invname == xtty(tty|pid) ]]; then xtty $invlast3
+	elif [[ $invname =~ ^xtty(tty|pid)$ ]]; then xtty $invlast3 $userarg
 	else echo "unimplemented invname '$invname'"; exit 1; fi
 }
 
