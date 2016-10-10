@@ -22,8 +22,6 @@ require pidenv
 require bomb
 require get_invocation_name
 
-exec 2>/dev/null
-
 ###
 
 # - use ps --tty or ps --pid depending on $1 to determine
@@ -40,7 +38,11 @@ getpid ()
 	pidarg=($(ps \
 		--$psarg $userarg \
 		--format pid= \
+		2>/dev/null
 	))
+	if ! [[ $pidarg ]]; then
+		echo "could not find ps:$psarg arg:$userarg"; false; exit; fi
+
 	printf $pidarg
 }
 
