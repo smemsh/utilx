@@ -73,7 +73,7 @@ make_search_url ()
 
 main ()
 {
-	invname=${_##*/}
+	invname=${0##*/}
 	datearg=${invname: -1}
 	datearg="tbs=qdr:${datearg:-'a'}"
 
