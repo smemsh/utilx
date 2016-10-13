@@ -43,7 +43,11 @@ display_battery_status ()
 	export BC_ENV_ARGS='-ql'
 
 	cd /sys/class/power_supply/BAT0
-	batt=$(echo "scale = 30; ($(<energy_now)/$(<energy_full)) * 100" | bc)
+
+	# strangely the filename differs amongst intel boards
+	#
+	for pfx in energy charge; do test -f ${pfx}_now && break; done
+	batt=$(echo "scale = 30; ($(<${pfx}_now)/$(<${pfx}_full)) * 100" | bc)
 	batt=${batt%.*}
 	echo "$batt%"
 }
