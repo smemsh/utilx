@@ -13,6 +13,7 @@
 #
 ##############################################################################
 
+XRC=~/.xrc
 
 declare -a \
 serveropts=(
@@ -33,7 +34,7 @@ set_which_server ()
 	xsrvr=X	# debian 20151011, was migrated to xserver-xorg-legacy
 	#xsrvr=/usr/lib/xorg/Xorg.wrap
 	#serveropts+=(-dpi 96)	# correct for gateway fpd1760 17" 1280x1024
-	serveropts+=(-dpi 106)	# correct for thinkpad x61s 11.3" 1024x768
+	serveropts+=(-dpi ${XRC_DPI:-106})	# correct for thinkpad x61s 11.3" 1024x768
 	serveropts+=(-keeptty -novtswitch)
 
 	srcdp=0
@@ -47,8 +48,7 @@ set_which_server ()
 
 	# we use this to run a nested X server
 	xsrvr=Xephyr
-	serveropts+=(-screen 1024x768) # correct for thinkpad
-	#serveropts+=(-screen 1280x1024) # correct for gateway
+	serveropts+=(-screen ${XRC_HRES:-1024}x${XRC_YRES:-768})
 	srcdp=0
 	dstdp=1
 	wmarg=jwm
@@ -92,6 +92,8 @@ start_window_manager ()
 main ()
 {
 	invname=${0##*/}
+
+	test -r $XRC && source $XRC
 
 	set_which_server $invname
 	start_xserver
