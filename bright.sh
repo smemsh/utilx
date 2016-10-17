@@ -14,19 +14,22 @@ ctlfile=$ctldir/brightness
 ctlnow=$ctldir/actual_brightness
 brightnow=$(<$ctlnow)
 
+adjust=$((brightnow / 10))
+((adjust == 0)) && adjust=1
+
 bright ()
 {
 	if (($# == 0)); then
 		echo $brightnow%
 
 	elif (($# != 1)); then
-		echo only 0 or 1 arg supported; false
+		echo "only 0 or 1 arg supported"; false
 
 	elif [[ $1 == 'up' ]]; then
-		echo $(($brightnow + 10)) > $ctlfile
+		echo $(($brightnow + adjust)) > $ctlfile
 
 	elif [[ $1 == 'down' ]]; then
-		echo $(($brightnow - 10)) > $ctlfile
+		echo $(($brightnow - adjust)) > $ctlfile
 
 	elif [[ $1 =~ [^[:digit:]] ]]; then
 		echo "digits only please"; false
