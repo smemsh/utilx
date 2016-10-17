@@ -74,8 +74,8 @@ start_xserver ()
 	# get server up before spawning its window manager
 	#
 	export DISPLAY=:$dstdp
-	for ((i = 0; i < 20; i++)); do
-		sleep 0.2; xsetroot -name root && break; done
+	for ((i = 0; i < 5; i++)); do
+		sleep 0.2; xsetroot -name root && break; echo; done
 
 	# if we failed xsetroot, the server did not finish start
 	#
