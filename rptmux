@@ -195,7 +195,7 @@ emit_mapping ()
 	# arbitrary key sequences if so
 	#
 	((${#key} > 1)) &&
-		continue
+		return
 
 	# new way calls our 'rpmeta' command, which simply emits the key
 	# (with added 'S-' prefix if need be; see add_maps_puncts())
