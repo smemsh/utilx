@@ -14,7 +14,7 @@ ctlfile=$ctldir/brightness
 ctlnow=$ctldir/actual_brightness
 brightnow=$(<$ctlnow)
 
-main ()
+bright ()
 {
 	if (($# == 0)); then
 		echo $brightnow%
@@ -42,5 +42,9 @@ main ()
 	fi
 }
 
-#main () { ${0##*/} "$@"; }
+# for acpid invocation, see /etc/acpi
+brightup () { bright up; }
+brightdown () { bright down; }
+
+main () { ${0##*/} "$@"; }
 main "$@"
