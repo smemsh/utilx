@@ -31,10 +31,12 @@ require setenv
 require now
 
 setenv save_file    ~/var/rpwm/wmpersist.dat    # stat file
-setenv classname     'chromium-browser'         # wm class name
-#setenv classname     'chromium'                # name in debian < ~20161204
-#setenv classname    'chromium-browser'         # name in debian < ~20160125
-#setenv classname    'Chromium'                 # name in debian < ~20151025
+#setenv classname1   'chromium'                 # wm class name from xwininfo
+#setenv classname2   'Chromium'                 #   has two components now (~20170102)
+#setenv classname   'chromium-browser'          # name in debian < ~20161212
+#setenv classname   'chromium'                  # name in debian < ~20161204
+#setenv classname   'chromium-browser'          # name in debian < ~20160125
+#setenv classname   'Chromium'                  # name in debian < ~20151025
 
 # enable for additional prints, etc
 debug=${debug:-0}
@@ -87,7 +89,8 @@ function_exists ()
 #
 get_window_rpdata ()
 {
-	local sep="^\\d+\\s${classname}\\s${classname}\\s"
+	# TODO share with get_window_titles(), needs change there too
+	local sep="^\\d+\\s${classname1}\\s${classname2}\\s"
 
 	$rpcmd 'windows %i %a %c %t %n' |
 	grep -P "$sep" |
@@ -106,7 +109,8 @@ get_window_rpdata ()
 #
 get_window_titles ()
 {
-	local sep="(\"$classname\" \"$classname\")"
+	# TODO share with get_window_rpdata(), needs change there too
+	local sep="(\"$classname1\" \"$classname2\")"
 
 	xwininfo -int -root -children |
 	grep -P '^\s+\d+\s' |
