@@ -31,8 +31,10 @@ require setenv
 require now
 
 setenv save_file    ~/var/rpwm/wmpersist.dat    # stat file
-setenv classname1   'chromium-browser'          # wm class name from xwininfo
-setenv classname2   'Chromium-browser'          #   has two components now
+setenv classname1   'chromium'                  # wm class name from xwininfo
+setenv classname2   'Chromium'                  #   has two components now (~20170102)
+#setenv classname1   'chromium-browser'         # wm class name from xwininfo
+#setenv classname2   'Chromium-browser'         #   has two components now (~20170214)
 #setenv classname1   'chromium'                 # wm class name from xwininfo
 #setenv classname2   'Chromium'                 #   has two components now (~20170102)
 #setenv classname   'chromium-browser'          # name in debian < ~20161212
