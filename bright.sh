@@ -9,7 +9,12 @@
 #
 ##############################################################################
 
-ctldir=/sys/class/backlight/acpi_video0
+if ! for dir in /sys/class/backlight/{acpi_video0,intel_backlight}
+do test -d $dir && break; done
+then echo "only support acpi, intel sysfiles" >&2; false; exit
+fi
+
+ctldir=$dir
 ctlfile=$ctldir/brightness
 ctlnow=$ctldir/actual_brightness
 brightnow=$(<$ctlnow)
