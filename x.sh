@@ -53,6 +53,16 @@ set_which_server ()
 	wmarg=jwm
 	;;
 
+	(x3)
+
+	# this is for experimenting with qtile
+	xsrvr=Xephyr
+	serveropts+=(-dpi ${XRC_DPI:-106} -screen ${XRC_HRES:-1024}x${XRC_YRES:-768})
+	srcdp=0
+	dstdp=2
+	wmarg="qtile --config $HOME/.qtilerc"
+	;;
+
 	(*)
 
 	echo "bad invocation: '$1'"
