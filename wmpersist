@@ -121,6 +121,7 @@ get_window_titles ()
 	grep ":.*$sep" |
 	awk -F "$sep" '{print $1}' |
 	sed s,^'[[:space:]]*',, |
+	sed -r 's,^([[:digit:]]+)[[:blank:]]+"(.*)":.\(,\1 \2,' |
 	sort -nrk 1,2
 }
 
@@ -213,7 +214,7 @@ gather_data ()
 		do
 			setenv pattern \
 				'([[:digit:]]+)[[:space:]]' \
-				'"(.*)"' \
+				'(.*)' \
 			;
 			[[ "${titles[i]}" =~ $pattern ]]
 			ttxid=${BASH_REMATCH[1]}
