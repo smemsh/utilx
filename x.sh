@@ -60,7 +60,7 @@ set_which_server ()
 	serveropts+=(-dpi ${XRC_DPI:-106} -screen ${XRC_HRES:-1024}x${XRC_YRES:-768})
 	srcdp=0
 	dstdp=2
-	wmarg="qtile -c $HOME/.qtilerc"
+	wmarg="$HOME/venv/qtile/bin/qtile -c $HOME/.qtilerc"
 	;;
 
 	(*)
