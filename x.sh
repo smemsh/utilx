@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # x.sh: x, x2
-#   starts x11 with ratpoison (x) or a nested one with xephyr+jwm (x2)
+#   starts x11 with rpwm (x) or nested xephyr+jwm (x2) or +qtile (x3)
 #
 # todo:
 #   - if [[ $DISPLAY ]] x2; else x; fi
