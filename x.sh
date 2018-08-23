@@ -95,7 +95,8 @@ start_xserver ()
 start_window_manager ()
 {
 	export DISPLAY=:$dstdp
-	daemonize "$wmarg" ${wmarg%% *} || exit 20
+	local logname=${wmarg%% *}; logname=${wmarg##*/}
+	daemonize "$wmarg" $logname || exit 20
 }
 
 main ()
