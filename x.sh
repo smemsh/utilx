@@ -38,7 +38,7 @@ set_which_server ()
 
 	srcdp=0
 	dstdp=0
-	vtnum=2
+	vtnum=${XRC_VT:-2}
 	vtarg=vt$vtnum
 	wmarg=rpwm
 	;;
