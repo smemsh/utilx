@@ -45,11 +45,34 @@ get_battery_capacity ()
 	local batfiles=(/sys/class/power_supply/BAT*)
 
 	if ! ((${#batfiles[@]} == 1))
-	then false; exit 5
+	then exit 5
 	else batfile=$batfiles
 	fi
 
-	printf $(<$batfile/capacity)
+	# capacity appears to be charge_now / charge_full_design, but
+	# charge_full is a lot more useful because it degrades over time
+	#
+	now=$(<$batfile/charge_now)
+	full=$(<$batfile/charge_full)
+
+	# after a long uptime and then power drain to empty, on next boot, once
+	# fully charged to 100%, charge_now can be considerably lower than
+	# change_full, presumably because it's using the *last* time it was
+	# charged full, which will always be from [eg] 6 months ago if we
+	# aren't rebooting often.  for example right now laptop has been
+	# plugged in over 24 hours, but (charge_now / charge_full) is only 95%;
+	# this is because last time it was rebooted was like 8 months ago and
+	# we've lost max-capacity in the interim.  we can detect this condition
+	# using the 'status' file which always shows if it's full or not.  it
+	# means that short of "full" it won't be quite accurate still, but it
+	# will be good enough for now and at least shut up the screen flashing
+	# when the thing is full
+	#
+	stat=$(<$batfile/status)
+	if [[ $stat == Full ]]
+	then printf 100
+	else lvl=$(bc <<< "scale = 3; ($now / $full) * 100"); printf ${lvl%%.*}
+	fi
 }
 
 determine_threshold ()

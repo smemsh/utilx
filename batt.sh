@@ -49,6 +49,7 @@ display_battery_status ()
 	for pfx in energy charge; do test -f ${pfx}_now && break; done
 	batt=$(echo "scale = 30; ($(<${pfx}_now)/$(<${pfx}_full)) * 100" | bc)
 	batt=${batt%.*}
+	[[ $(<status) == Full ]] && batt=100
 	echo "$batt%"
 }
 
