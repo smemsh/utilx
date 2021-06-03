@@ -1,19 +1,21 @@
 #!/bin/bash
 #
 # wmpersist
-#   - save/load chromium window titles to winname mappings
+#   - save/load browser window titles to winname mappings
 #   - works with ratpoison window manager
 #
 # usage:
-#   "wmpersist save": write out chromium window titles to
+#   "wmpersist save X": write out chromium window titles to
 #                     ratpoison winname mappings
 #
-#   "wmpersist load": take existing windows, search for
+#   "wmpersist load X": take existing windows, search for
 #                     titles in the save file, and
 #                     rename/renumber within ratpoison to
 #                     match them, once chromium has been
 #                     restarted (typically following a crash,
 #                     which happens frequently)
+#
+#   second arg (X): chrome or brave (which browser to save/load for)
 #
 # scott@smemsh.net
 # http://smemsh.net/src/ratutils/
@@ -26,17 +28,11 @@ include error
 require setenv
 require now
 
-setenv save_file    ~/var/rpwm/wmpersist.dat    # stat file
-setenv classname1   'chromium'                  # wm class name from xwininfo
-setenv classname2   'Chromium'                  #   has two components now (~20170102)
-#setenv classname1   'chromium-browser'         # wm class name from xwininfo
-#setenv classname2   'Chromium-browser'         #   has two components now (~20170214)
-#setenv classname1   'chromium'                 # wm class name from xwininfo
-#setenv classname2   'Chromium'                 #   has two components now (~20170102)
-#setenv classname   'chromium-browser'          # name in debian < ~20161212
-#setenv classname   'chromium'                  # name in debian < ~20161204
-#setenv classname   'chromium-browser'          # name in debian < ~20160125
-#setenv classname   'Chromium'                  # name in debian < ~20151025
+# see get_window_titles()
+classname1[chrome]='chromium'
+classname2[chrome]='Chromium'
+classname1[brave]='brave-browser'
+classname2[brave]='Brave-browser'
 
 # enable for additional prints, etc
 debug=${debug:-0}
@@ -545,8 +541,13 @@ props ()
 
 main ()
 {
-	if ! [[ $1 ]]; then
-		bomb "required arg missing"; fi
+	[[ $1 ]] || bomb "invocation method missing"
+
+	[[ $2 ]] || bomb "browser name missing"
+	[[ $2 =~ (chrome|brave) ]] || bomb "browser name invalid"
+	classname1=${classname1[$2]}
+	classname2=${classname2[$2]}
+	save_file=~/var/rpwm/wmpersist-$2.dat
 
 	# todo: use libsh version of this code
 	if function_exists $1
