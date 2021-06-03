@@ -14,10 +14,6 @@
 #                     match them, once chromium has been
 #                     restarted (typically following a crash,
 #                     which happens frequently)
-# stat:
-#   - used in production by author
-#   - some site-local paths remain
-#   - please notify author if using
 #
 # scott@smemsh.net
 # http://smemsh.net/src/ratutils/
