@@ -39,13 +39,6 @@ ____
 | http://spdx.org/licenses/GPL-2.0
 |
 
-status:
-
-- used by author regularly
-- some site-local hardcodes remain
-- please notify author if using
-
-
 wmpersist
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
