@@ -1,8 +1,7 @@
 ratutils
 ==============================================================================
 
-Collection of some scripts to interact with Ratpoison window
-manager.  So far there are:
+Collection of scripts for working in a Ratpoison/X11 setup
 
 `wmpersist`_
     Ratpoison (and Chrome) -specific script to preserve browser
@@ -29,6 +28,9 @@ which we'll store here for now since they're used for pseudo
 :`chkbatt`: increasing screenflashes as battery drains
 :`xtty.sh`: switch x11 window by tty or pid
 :`tmuxtty.sh`: switch tmux window by tty or pid
+
+There's a bunch of other random stuff; at some point will maybe
+update this file or remove it...
 
 ____
 
