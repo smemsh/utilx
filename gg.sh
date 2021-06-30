@@ -71,6 +71,21 @@ make_search_url ()
 	search=${search/+/} # ??? why is this here?
 }
 
+setgreys ()
+{
+	for greycolor in {232..247}
+	do
+		# https://stackoverflow.com/questions/27159322
+		lowestgrey=249
+		greynum=$(((lowestgrey - 232) * 10 + 8))
+		echo -en "\e]4;$greycolor;#$(
+			for ((i = 0; i < 3; i++))
+			do printf '%02x' $greynum
+			done
+		)\e\\"
+	done
+}
+
 main ()
 {
 	invname=${0##*/}
@@ -79,7 +94,7 @@ main ()
 
 	case $invname in
 	(ggw) defbrowser='vimb' ;;
-	(gg) defbrowser='elinks' ;;
+	(gg) setgreys; defbrowser='elinks' ;;
 	(*) echo "unknown invocation name"; false; exit ;;
 	esac
 
