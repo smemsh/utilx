@@ -38,7 +38,7 @@ classname1[nightly]='brave-browser-nightly'
 classname2[nightly]='Brave-browser-nightly'
 
 # enable for additional prints, etc
-debug=${debug:-0}
+debug=${DEBUG:-0}
 
 if ((debug))
 then
