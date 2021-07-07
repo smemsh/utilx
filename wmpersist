@@ -23,6 +23,7 @@
 #
 ##############################################################################
 
+invname=${0##*/}
 setenv () { local v=$1; shift; IFS= eval $v="\$*"; }
 warn   () { echo "$invname: ${FUNCNAME[1]}: $*" >&2; }
 bomb   () { warn "$@"; false; exit; }
