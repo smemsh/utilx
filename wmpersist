@@ -112,7 +112,7 @@ get_window_rpdata ()
 				printf(" %s", $i)
 			printf("\n")
 		}'
-	done) | sort -nrk 1,2
+	done) | sort -snrk 1,1
 
 	$rpcmd "gsel $curgroup"
 }
