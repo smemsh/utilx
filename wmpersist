@@ -33,6 +33,8 @@ classname1[chrome]='chromium'
 classname2[chrome]='Chromium'
 classname1[brave]='brave-browser'
 classname2[brave]='Brave-browser'
+classname1[nightly]='brave-browser-nightly'
+classname2[nightly]='Brave-browser-nightly'
 
 # enable for additional prints, etc
 debug=${debug:-0}
@@ -543,7 +545,8 @@ main ()
 {
 	[[ $1 ]] || bomb "invocation method missing"
 	[[ $2 ]] || bomb "browser name missing"
-	[[ $2 =~ (chrome|brave) ]] || bomb "browser name invalid"
+	[[ $2 =~ (chrome|brave|nightly) ]] ||
+		bomb "browser name invalid"
 	classname1=${classname1[$2]}
 	classname2=${classname2[$2]}
 	save_file=~/var/rpwm/wmpersist-$2.dat
