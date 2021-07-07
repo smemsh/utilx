@@ -87,18 +87,34 @@ function_exists ()
 #
 get_window_rpdata ()
 {
+	local i curgroup group groupname
+	local -a groups groupnames
+
 	# TODO share with get_window_titles(), needs change there too
 	local sep="^\\d+\\s${classname1}\\s${classname2}\\s"
 
-	$rpcmd 'windows %i %a %c %t %n' |
-	grep -P "$sep" |
-	awk '{
-		printf("%s", $1)
-		for (i = 4; i <= NF; i++)
-			printf(" %s", $i)
-		printf("\n")
-	}' |
-	sort -nrk 1,2
+	groups=($($rpcmd groups))
+	for ((i = 0; i < ${#groups[@]}; i++)); do
+		[[ ${groups[i]} =~ [[:digit:]]+(.)(.*) ]]
+		groupname=${BASH_REMATCH[2]}
+		groupnames+=($groupname)
+		[[ ${BASH_REMATCH[1]} == '*' ]] &&
+			curgroup=$groupname
+	done
+
+	(for group in ${groupnames[@]}; do
+		$rpcmd "gsel $group"
+		$rpcmd 'windows %i %a %c %t %n' |
+		grep -P "$sep" |
+		awk '{
+			printf("%s", $1)
+			for (i = 4; i <= NF; i++)
+				printf(" %s", $i)
+			printf("\n")
+		}'
+	done) | sort -nrk 1,2
+
+	$rpcmd "gsel $curgroup"
 }
 
 # use 'xwininfo' to print a tree of windows and fiter out
