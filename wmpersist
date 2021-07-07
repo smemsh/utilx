@@ -29,6 +29,7 @@ warn   () { echo "$invname: ${FUNCNAME[1]}: $*" >&2; }
 bomb   () { warn "$@"; false; exit; }
 
 # see get_window_titles()
+declare -A classname1 classname2
 classname1[chrome]='chromium'
 classname2[chrome]='Chromium'
 classname1[brave]='brave-browser'
