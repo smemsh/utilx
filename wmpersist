@@ -23,10 +23,9 @@
 #
 ##############################################################################
 
-source ~/lib/sh/include
-include error
-require setenv
-require now
+setenv () { local v=$1; shift; IFS= eval $v="\$*"; }
+warn   () { echo "$invname: ${FUNCNAME[1]}: $*" >&2; }
+bomb   () { warn "$@"; false; exit; }
 
 # see get_window_titles()
 classname1[chrome]='chromium'
