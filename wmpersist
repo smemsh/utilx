@@ -541,7 +541,6 @@ props ()
 main ()
 {
 	[[ $1 ]] || bomb "invocation method missing"
-
 	[[ $2 ]] || bomb "browser name missing"
 	[[ $2 =~ (chrome|brave) ]] || bomb "browser name invalid"
 	classname1=${classname1[$2]}
