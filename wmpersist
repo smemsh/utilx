@@ -55,6 +55,7 @@ declare -g nwins
 # array for storing the current names, numbers, titles
 #
 declare -a windata_names
+declare -a windata_groups
 declare -a windata_numbers
 declare -a windata_titles
 
@@ -92,7 +93,7 @@ get_window_rpdata ()
 	local -a groups groupnames
 
 	# TODO share with get_window_titles(), needs change there too
-	local sep="^\\d+\\s${classname1}\\s${classname2}\\s"
+	local sep="^\\w+\\s+\\d+\\s${classname1}\\s${classname2}\\s"
 
 	groups=($($rpcmd groups))
 	for ((i = 0; i < ${#groups[@]}; i++)); do
@@ -105,15 +106,15 @@ get_window_rpdata ()
 
 	(for group in ${groupnames[@]}; do
 		$rpcmd "gsel $group"
-		$rpcmd 'windows %i %a %c %t %n' |
+		$rpcmd "windows $group %i %a %c %t %n" |
 		grep -P "$sep" |
 		awk '{
-			printf("%s", $1)
-			for (i = 4; i <= NF; i++)
+			printf("%s %u", $1, $2)
+			for (i = 5; i <= NF; i++)
 				printf(" %s", $i)
 			printf("\n")
 		}'
-	done) | sort -snrk 1,1
+	done) | sort -snrk 2,2
 
 	$rpcmd "gsel $curgroup"
 }
@@ -195,7 +196,8 @@ gather_data ()
 	# "xwininfo" and "ratpoison -c windows" lines, which
 	# we will process later
 	#
-	local rpxid ttxid rpnam rpnum title
+	local rpxid rpnam rpgrp rpnum
+	local ttxid title
 	
 	# pull out the ratpoison data fields we want
 	# from each output line stored in the array
@@ -203,14 +205,16 @@ gather_data ()
 	gather_rpdata_fields ()
 	{
 		setenv pattern \
+			'^([^[:space:]]+)[[:space:]]+' \
 			'([[:digit:]]+)[[:space:]]' \
 			'(.*)[[:space:]]' \
 			'([[:digit:]]+)' \
 		;
 		[[ "${rpdata[i]}" =~ $pattern ]]
-		rpxid=${BASH_REMATCH[1]}
-		rpnam=${BASH_REMATCH[2]}
-		rpnum=${BASH_REMATCH[3]}
+		rpgrp=${BASH_REMATCH[1]}
+		rpxid=${BASH_REMATCH[2]}
+		rpnam=${BASH_REMATCH[3]}
+		rpnum=${BASH_REMATCH[4]}
 	}
 
 	# and then also save fields we want from the xwininfo
@@ -337,6 +341,7 @@ gather_data ()
 		# routines both use these data)
 		#
 		windata_names+=("$rpnam")
+		windata_groups+=("$rpgrp")
 		windata_titles+=("$title")
 		windata_numbers+=($rpnum)
 
@@ -349,7 +354,7 @@ gather_data ()
 		# associated title already, and what the title
 		# is (so we can swap our own list in-place)
 		#
-		windata_number_to_title[$rpnum]="$title"
+		windata_number_to_title[$rpgrp,$rpnum]="$title"
 
 		# however, we *do* want to use a title:number
 		# dictionary because, on restore, we have to
@@ -363,7 +368,7 @@ gather_data ()
 		# one.  when found we get the number, switch
 		# to it, and then write the name
 		#
-		winmap_title_to_number["$title"]="$rpnum"
+		winmap_title_to_number["$title"]="$rpgrp,$rpnum"
 
 		# we don't actually use this yet, because we
 		# already have the existing mappings, gathered
@@ -379,6 +384,7 @@ gather_data ()
 	if ((debug))
 	then
 		declare -p windata_names >> $debug_file
+		declare -p windata_groups >> $debug_file
 		declare -p windata_numbers >> $debug_file
 		declare -p windata_titles >> $debug_file
 		declare -p winmap_title_to_name >> $debug_file
@@ -417,7 +423,8 @@ store   ()
 	# by gather_data()) into the designated save file
 	#
 	for ((i = 0; i < nwins; i++)); do
-		printf "%u %s %s\n" \
+		printf "%s %u %s %s\n" \
+			"${windata_groups[i]}" \
 			"${windata_numbers[i]}" \
 			"${windata_names[i]}" \
 			"${windata_titles[i]}" \
@@ -432,10 +439,15 @@ reload  () { load "$@"; }
 load    ()
 {
 	local i
-	local pattern line
-	local saved_num saved_name saved_title
+	local pattern line curgroup
+	local saved_grp saved_num saved_name saved_title
+	local target target_num target_grp target_cmp saved_cmp
 
-	local -a lines
+	local -a lines groups
+
+	test -e $save_file ||
+		bomb "persist data file does not exist"
+
 	readarray -t lines < $save_file
 
 	if ((debug)); then
@@ -453,27 +465,34 @@ load    ()
 	do
 		line="${lines[i]}"
 		setenv pattern '^' \
+			'^([^[:space:]]+)[[:space:]]+' \
 			'([[:digit:]]+)[[:space:]]' \
 			'([^[:space:]]+)[[:space:]]' \
 			'(.*)' \
 		;
 		[[ $line =~ $pattern ]]
-		saved_num=${BASH_REMATCH[1]}
-		saved_name=${BASH_REMATCH[2]}
-		saved_title=${BASH_REMATCH[3]}
+		saved_grp=${BASH_REMATCH[1]}
+		saved_num=${BASH_REMATCH[2]}
+		saved_name=${BASH_REMATCH[3]}
+		saved_title=${BASH_REMATCH[4]}
 
 		target=${winmap_title_to_number["$saved_title"]}
-		if ! [[ $target ]]; then
-			bomb "failed map title -> number: \"$saved_title\""; fi
+		target_num=${target#*,}
+		target_grp=${target%,*}
+		target_cmp=$target_grp,$target_num
+		saved_cmp=$saved_grp,$saved_num
+		if ! [[ $target_num && $target_grp ]]; then
+			bomb "failed map title -> target: \"$saved_title\""; fi
 
 		if ((debug))
 		then
 			printf "%s: %s\n" \
 		             loop "$i" \
-		        saved_num "$saved_num" \
+		        saved_grp "$saved_grp" \
+		        saved_cmp "$saved_cmp" \
 		       saved_name "$saved_name" \
 		      saved_title "$saved_title" \
-		           target "$target" \
+		       target_cmp "$target_cmp" \
 		; fi
 
 		if ((debug)); then
@@ -484,8 +503,10 @@ load    ()
 		# second arg for target window, as with the
 		# 'number' ratpoison command
 		#
-		$rpcmd "select $target" ||
-			bomb "failed to select target $target"
+		$rpcmd "gsel $target_grp" ||
+			bomb "failed switch to target group $target_grp"
+		$rpcmd "select $target_num" ||
+			bomb "failed to select target window $target_num"
 
 		if ((debug)); then
 			printf "after-select: %s\n" `print_rpinfo`; fi
@@ -506,6 +527,44 @@ load    ()
 		if ((debug)); then
 			printf "after-title: %s\n" `print_rpinfo`; fi
 
+		# if target window starts out in different group than
+		# the destination (ie saved group), we have to move it
+		#
+		if [[ $target_grp != $saved_grp ]]
+		then
+			$rpcmd "gmove $saved_grp" ||
+				bomb "could not move window to group $saved_grp"
+
+			# window move does not change current group
+			$rpcmd "gsel $saved_grp"
+
+			# we have a switchgroup hook that always runs
+			# "other" so we have to switch back to the target
+			# window.  if the group had no windows, the "other"
+			# will fail because there's "no other window" but
+			# also will this second "other" fail and so we'll
+			# still end up on the right window (the only one in
+			# the group, if the group is empty).  we do require
+			# that the user has made all the needed groups
+			# already, prior to running the script, and make no
+			# attempt to make the groups ourselves TODO; we
+			# will most likely have switched to qtile before
+			# that's needed, this is just a hack for now
+			#
+			$rpcmd "other"
+
+			# since we switched group, the number data for our
+			# target window is wrong.  each group has its own
+			# numbers.  we must update target info prior to the
+			# attempt to renumber, so numbers array update is
+			# done correctly for the case where the window
+			# already exists (ratpoison will swap them)
+			#
+			newnum=`$rpcmd "info %n"`
+			target_cmp=$saved_grp,$newnum
+		fi
+
+		# now we can proceed with the renumber attempt
 		$rpcmd "number $saved_num" ||
 			bomb "failed to switch number $saved_num"
 
@@ -516,19 +575,19 @@ load    ()
 		# next loop iteration to have correct mapping
 		# data after swap
 		#
-		oldtitle="${windata_number_to_title[$saved_num]}"
+		oldtitle="${windata_number_to_title[$saved_cmp]}"
 
 		if ((debug)); then
 			printf "oldtitle: %s\n" "$oldtitle"
-			printf "saved_num: %s\n" "$saved_num"
+			printf "saved_cmp: %s\n" "$saved_cmp"
 		fi
 
 		if [[ $oldtitle ]]
 		then
-			winmap_title_to_number["$saved_title"]=$saved_num
-			winmap_title_to_number["$oldtitle"]=$target
-			windata_number_to_title[$saved_num]="$saved_title"
-			windata_number_to_title[$target]="$oldtitle"
+			winmap_title_to_number["$saved_title"]=$saved_cmp
+			winmap_title_to_number["$oldtitle"]=$target_cmp
+			windata_number_to_title[$saved_cmp]="$saved_title"
+			windata_number_to_title[$target_cmp]="$oldtitle"
 		fi
 
 		if ((debug))
