@@ -15,7 +15,7 @@
 #                     restarted (typically following a crash,
 #                     which happens frequently)
 #
-#   second arg (X): chrome or brave (which browser to save/load for)
+#   second arg (X): chrome, brave or nightly (browser to save/load for)
 #
 # scott@smemsh.net
 # http://smemsh.net/src/utilx/
