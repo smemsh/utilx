@@ -599,6 +599,8 @@ load    ()
 			#
 			echo
 		fi
+
+		sleep 0.1s
 	done
 }
 
