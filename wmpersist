@@ -602,19 +602,6 @@ load    ()
 	done
 }
 
-# use to output all properties of all windows during testing
-# todo: currently, no call sites, link into invocation somewhere
-#
-props ()
-{
-	ids=($(lsw -l | awk '{print $1}'))
-	props=($(xlsatoms | grep WM | awk '{print $2}'))
-	for id in ${ids[@]}; do
-		for prop in ${props[@]}; do
-			xprop -id $id $prop; done; done \
-	| grep -v 'not.found\.$'
-}
-
 ##############################################################################
 
 main ()
