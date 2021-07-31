@@ -600,7 +600,7 @@ load    ()
 			echo
 		fi
 
-		sleep 0.1s
+		sleep 0.4s
 	done
 }
 
