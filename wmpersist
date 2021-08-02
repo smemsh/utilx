@@ -615,11 +615,17 @@ main ()
 	classname1=${classname1[$2]}
 	classname2=${classname2[$2]}
 	save_file=~/var/rpwm/wmpersist-$2.dat
+	lock_file=~/var/rpwm/rpwm.lock
+
+	exec 9>>$lock_file
+	flock -n 9 -w 5 || bomb "could not acquire lock"
 
 	# todo: use libsh version of this code
 	if function_exists $1
 	then $1 "${@:2}"
 	else bomb "unimplemented"; fi
+
+	exec 9>&-
 }
 	
 main "$@"
