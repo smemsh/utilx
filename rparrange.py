@@ -14,10 +14,13 @@ __author__  = 'Scott Mcdermott <scott@smemsh.net>'
 __license__ = 'GPL-2.0'
 
 from sys import argv, stdin, stdout, stderr, exit
+
 from re import match
+from fcntl import flock, LOCK_EX
+from signal import signal, alarm, SIGALRM, SIG_IGN
 from subprocess import check_output
 
-from os.path import basename
+from os.path import basename, expanduser
 from os import (
     environ,
     EX_OK as EXIT_SUCCESS,
@@ -30,6 +33,9 @@ windows = []
 revwins = []
 curwin = 0
 curidx = 0
+
+LOCKFILE = "~/var/rpwm/rpwm.lock"
+lockfile = None
 
 ###
 
@@ -44,6 +50,23 @@ def bomb(*args):
 
 def rp(cmd):
     return check_output(['ratpoison', '-c', cmd], text=True)
+
+def acquire_lock():
+
+    global lockfile
+
+    def lock_timeout_handler():
+        bomb("could not acquire lock")
+
+    lockfile = open(expanduser(LOCKFILE), 'a')
+    signal(SIGALRM, lock_timeout_handler)
+    alarm(5)
+    flock(lockfile, LOCK_EX)
+    signal(SIGALRM, SIG_IGN)
+
+
+def release_lock():
+    lockfile.close()
 
 ###
 
@@ -75,6 +98,8 @@ def main():
 
     global windows, revwins, curwin, curidx
 
+    acquire_lock()
+
     windows = [int(x) for x in rp('windows %n').splitlines()]
     revwins = {windows[i]:i for i in range(len(windows))}
     curwin = int(match(r'\(\d+,\s+\d+\)\s+(\d+)', rp('info')).group(1))
@@ -84,7 +109,9 @@ def main():
     except (KeyError, TypeError):
         bomb(f"unimplemented command '{invname}'")
 
-    return subprogram()
+    ret = subprogram()
+    release_lock()
+    return ret
 
 ###
 
