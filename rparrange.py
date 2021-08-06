@@ -92,6 +92,13 @@ def rpright():
 
     rp(f"number {target}")
 
+
+def rprenumber():
+
+    for i in range(len(windows)):
+        if windows[i] == i: continue
+        else: rp(f"number {i} {windows[i]}")
+
 ###
 
 def main():
