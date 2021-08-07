@@ -43,8 +43,9 @@ RANDHEXLEN = RANDBITS // 4
 
 FDTIMEOUT = 5
 
-TRIGFILE = expanduser("~/var/rpwm/rpwm.fifo")
-LOCKFILE = expanduser("~/var/rpwm/rpwm.lock")
+RPWMDIR = expanduser("~/var/rpwm")
+TRIGFILE = f"{RPWMDIR}/rpwm.fifo"
+LOCKFILE = f"{RPWMDIR}/rpwm.lock"
 lockfile = None
 
 ###
