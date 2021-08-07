@@ -3,7 +3,6 @@
  rparrange.py: rpleft, rpright, rprenumber
    rearrange ratpoison window offsets (incr, decr, make sequential)
 
-   - intended to be bound to ratpoison keys using definekey ... exec
    - rprenumber: rearrange ratpoison window numbers sequentially
    - rpleft: decrement current window's position on window list
    - rpright: increment current window's position on window list
