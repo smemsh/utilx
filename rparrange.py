@@ -67,6 +67,10 @@ def acquire_lock():
 def release_lock():
     lockfile.close()
 
+
+def get_current_window():
+    return int(match(r'\(\d+,\s+\d+\)\s+(\d+)', rp('info')).group(1))
+
 ###
 
 def rpleft():
@@ -110,7 +114,7 @@ def main():
 
     windows = [int(x) for x in rp('windows %n').splitlines()]
     revwins = {windows[i]:i for i in range(len(windows))}
-    curwin = int(match(r'\(\d+,\s+\d+\)\s+(\d+)', rp('info')).group(1))
+    curwin = get_current_window()
     curidx = revwins[curwin]
 
     try: subprogram = globals()[invname]
