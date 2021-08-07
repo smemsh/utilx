@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
- rparrange.py: rpleft, rpright, rprenumber
+ rparrange.py: rpleft, rpright, rprenumber, rpafter
    rearrange ratpoison window offsets (incr, decr, make sequential)
 
    - rpleft: decrement current window's position, rotate to bottom if first
    - rpright: increment current window's position, rotate to top if last
+   - rpafter: run arg1 with exec, ensuring win number one after current window
    - rprenumber: rearrange ratpoison window numbers sequentially starting at 0
 """
 
@@ -17,11 +18,15 @@ from sys import argv, stdin, stdout, stderr, exit
 from re import match
 from fcntl import flock, LOCK_EX
 from signal import signal, alarm, SIGALRM, SIG_IGN
+from select import select
+from random import getrandbits
 from subprocess import check_output
 
-from os.path import basename, expanduser
+from os.path import basename, dirname, expanduser
 from os import (
     environ,
+    open as osopen, read, write, close,
+    O_RDWR,
     EX_OK as EXIT_SUCCESS,
     EX_SOFTWARE as EXIT_FAILURE,
 )
@@ -33,7 +38,13 @@ revwins = []
 curwin = 0
 curidx = 0
 
-LOCKFILE = "~/var/rpwm/rpwm.lock"
+RANDBITS = 128
+RANDHEXLEN = RANDBITS // 4
+
+FDTIMEOUT = 5
+
+TRIGFILE = expanduser("~/var/rpwm/rpwm.fifo")
+LOCKFILE = expanduser("~/var/rpwm/rpwm.lock")
 lockfile = None
 
 ###
@@ -50,14 +61,18 @@ def bomb(*args):
 def rp(cmd):
     return check_output(['ratpoison', '-c', cmd], text=True)
 
+
 def acquire_lock():
 
     global lockfile
 
+    if invname == 'rptrigger':
+        return # called by self, avoid deadlock
+
     def lock_timeout_handler():
         bomb("could not acquire lock")
 
-    lockfile = open(expanduser(LOCKFILE), 'a')
+    lockfile = open(LOCKFILE, 'a')
     signal(SIGALRM, lock_timeout_handler)
     alarm(5)
     flock(lockfile, LOCK_EX)
@@ -65,6 +80,9 @@ def acquire_lock():
 
 
 def release_lock():
+
+    if invname == 'rptrigger':
+        return # called by self, avoid deadlock
     lockfile.close()
 
 
@@ -101,6 +119,93 @@ def rprenumber():
     for i in range(len(windows)):
         if windows[i] == i: continue
         else: rp(f"number {i} {windows[i]}")
+
+
+# used internally to synchronize new window spawn for rpafter
+def rptrigger():
+
+    if len(args) != 1 or len(args[0]) != RANDHEXLEN:
+        bomb("rptrigger: usage: rptrigger <{RANDHEXLEN}-char-string>")
+
+    fd = osopen(TRIGFILE, O_RDWR)
+    _, ready, _ = select([], [fd], [], FDTIMEOUT)
+    if not ready:
+        bomb("no reader available by the timeout")
+    write(fd, args[0].encode())
+    close(fd)
+
+
+def rpafter():
+
+    target = curwin + 1
+
+    try: command = args[0]
+    except IndexError: bomb("rpafter: usage: rpafter <command>")
+
+    # new windows are spawned async, so we have to wait on it being
+    # actually mapped before proceeding, otherwise we'll race with it.
+    # so we add a hook that writes a fixed-length random string to a
+    # named pipe, spawn the window, and wait until we get string back
+    #
+    trigger = "{:032x}".format(getrandbits(RANDBITS))
+    winhook = f"newwindow exec {dirname(__file__)}/rptrigger {trigger}"
+    try:
+        rp(f"addhook {winhook}")
+        rp(f"exec {command}")
+        fd = osopen(TRIGFILE, O_RDWR) # if not rw, blocks until writer opens
+        ready, _, _ = select([fd], [], [], FDTIMEOUT)
+        if not ready:
+            bomb("no trigger received in time")
+        trigchars = read(fd, RANDHEXLEN).decode()
+        close(fd)
+        if (trigchars != trigger or len(trigchars) != RANDHEXLEN):
+            bomb("trigger received but not the right one")
+    finally:
+        rp(f"remhook {winhook}")
+
+    newcur = get_current_window()
+
+    if newcur == target:
+        return
+
+    if target not in revwins:
+        rp(f"number {target}")
+        return
+
+    ### target already occupied ###
+
+    # temporarily move the new window beyond the end, so we don't have
+    # to consider it when shifting windows right to make room for it.
+    # we leave one free slot after the last one, in case they're all
+    # contiguous and we have to shift all the way through to last one
+    #
+    rp(f"number {windows[len(windows) - 1] + 2}")
+
+    # find the first window (after the original current one at start)
+    # that has the number after it free.  we only need to shift right up
+    # until this one.  it might be the last one if they're all
+    # contiguous and no holes can be found
+    #
+    for i in range(curidx, len(windows) - 1):
+        if windows[i] + 1 not in revwins:
+            break
+    shiftuntil = i
+
+    # shift everyone after the original current window to the right by
+    # one, up until one that doesn't have a slot occupied after it
+    #
+    for i in range(shiftuntil, curwin, -1):
+        rp(f"number {windows[i] + 1} {windows[i]}")
+
+    # move the new window to the previously occupied target now that it
+    # was shifted away and there's room
+    #
+    rp(f"number {target}")
+
+    # TODO should we renumber or make the windows contiguous while we
+    # shift? for now we're just incrementing their existing sequence
+    # numbers by one, which will leave the same holes
+
 
 ###
 
