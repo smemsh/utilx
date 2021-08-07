@@ -3,9 +3,9 @@
  rparrange.py: rpleft, rpright, rprenumber
    rearrange ratpoison window offsets (incr, decr, make sequential)
 
-   - rprenumber: rearrange ratpoison window numbers sequentially
-   - rpleft: decrement current window's position on window list
-   - rpright: increment current window's position on window list
+   - rpleft: decrement current window's position, rotate to bottom if first
+   - rpright: increment current window's position, rotate to top if last
+   - rprenumber: rearrange ratpoison window numbers sequentially starting at 0
 """
 
 __url__     = 'http://smemsh.net/src/utilpy/'
