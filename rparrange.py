@@ -56,9 +56,15 @@ def bomb(*args):
     err(*args)
     exit(EXIT_FAILURE)
 
+def dprint(*args):
+    if not debug: return
+    err('debug:', *args)
+
 ###
 
 def rp(cmd):
+
+    dprint(f"rp '{cmd}'")
     return check_output(['ratpoison', '-c', cmd], text=True)
 
 
@@ -165,14 +171,19 @@ def rpafter():
 
     newcur = get_current_window()
 
+    dprint(f"curwin: {curwin}")
+    dprint(f"newcur: {newcur}")
+
     if newcur == target:
+        dprint("new at target already")
         return
 
     if target not in revwins:
+        dprint("target is not occupied")
         rp(f"number {target}")
         return
 
-    ### target already occupied ###
+    dprint("target already occupied")
 
     # temporarily move the new window beyond the end, so we don't have
     # to consider it when shifting windows right to make room for it.
@@ -190,6 +201,7 @@ def rpafter():
         if windows[i] + 1 not in revwins:
             break
     shiftuntil = i
+    dprint(f"shiftuntil {shiftuntil}")
 
     # shift everyone after the original current window to the right by
     # one, up until one that doesn't have a slot occupied after it
