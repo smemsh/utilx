@@ -618,7 +618,7 @@ main ()
 	lock_file=~/var/rpwm/rpwm.lock
 
 	exec 9>>$lock_file
-	flock -n 9 -w 5 || bomb "could not acquire lock"
+	flock -w 5 9 || bomb "could not acquire lock"
 
 	# todo: use libsh version of this code
 	if function_exists $1
