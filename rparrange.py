@@ -94,6 +94,11 @@ def release_lock():
 
 
 def get_current_window():
+    #
+    # TODO: when none exist already, this will fail, ie to spawn the first
+    # window.  we work around this by spawning a window during wm init, but we
+    # could handle this case by doing it here
+    #
     return int(match(r'\(\d+,\s+\d+\)\s+(\d+)', rp('info')).group(1))
 
 ###
