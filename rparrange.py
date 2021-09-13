@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
  rparrange.py: rpleft, rpright, rprenumber, rpafter
-   rearrange ratpoison window offsets (incr, decr, make sequential)
+   rearrange ratpoison windows (incr, decr, make sequential, insert new)
 
    - rpleft: decrement current window's position, rotate to bottom if first
    - rpright: increment current window's position, rotate to top if last
