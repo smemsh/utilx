@@ -1,0 +1,9 @@
+#!/bin/sh
+
+for try in 1 2 3; do
+	/usr/bin/urxvtc && exit
+	[ $? -eq 2 ] && urxvtd -q -f -o
+done
+
+echo "no clean status from urxvtc after several tries, aborting" >&2
+false
