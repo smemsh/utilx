@@ -196,7 +196,7 @@ def rpafter():
         rp(f"number {target}")
         return
 
-    dprint("target already occupied")
+    dprint(f"target {target} already occupied")
 
     # temporarily move the new window beyond the end, so we don't have
     # to consider it when shifting windows right to make room for it.
@@ -246,6 +246,10 @@ def main():
     revwins = {windows[i]:i for i in range(len(windows))}
     curwin = get_current_window()
     curidx = revwins[curwin]
+    dprint(f"windows: {windows}\n"
+           f"revwins: {revwins},\n"
+           f"curwin: {curwin},\n"
+           f"curidx: {curidx}")
 
     try: subprogram = globals()[invname]
     except (KeyError, TypeError):
