@@ -1,7 +1,14 @@
 #!/usr/bin/env bash
 #
 # bright
-#   changes the backlight brightness, give 1-10 or 11-100
+#   changes the backlight brightness, give N where N is:
+#     up                +(max/10)
+#     down              -(max/10)
+#     max               (max)
+#     1-10              (max/10) * N
+#     11-100            (max/100) * N
+#     100 < N < max/10  invalid
+#     max/10 < N < max  (1/max) * N
 #
 # scott@smemsh.net
 # https://smemsh.net/src/utilx/
@@ -18,35 +25,49 @@ ctldir=$dir
 ctlfile=$ctldir/brightness
 ctlnow=$ctldir/actual_brightness
 ctlmax=$ctldir/max_brightness
+brightmax=$(<$ctlmax)
 brightnow=$(<$ctlnow)
 
-adjust=$((brightnow / 10))
-((adjust == 0)) && adjust=1
+adjust=$((brightmax / 10))
+if ! ((adjust))
+then echo "adjustment via brightmax will fail"; false; exit; fi
 
 bright ()
 {
 	if (($# == 0)); then
-		echo $brightnow%
+		nowpercent=$(bc -ql <<< "scale=2;(97/100)*100")
+		nowpercent=${nowpercent%.*}
+		echo $nowpercent%
 
 	elif (($# != 1)); then
 		echo "only 0 or 1 arg supported"; false
 
 	elif [[ $1 == 'up' ]]; then
-		echo $(($brightnow + adjust)) > $ctlfile
+		new=$(($brightnow + adjust))
+		if ((new > brightmax)); then new=$brightmax; fi
+		echo $new > $ctlfile
 
 	elif [[ $1 == 'down' ]]; then
-		echo $(($brightnow - adjust)) > $ctlfile
+		new=$(($brightnow - adjust))
+		if ((new < 0)); then new=0; fi
+		echo $new > $ctlfile
 
 	elif [[ $1 == 'max' ]]; then
-		echo $(< $ctlmax) > $ctlfile
+		echo $brightmax > $ctlfile
 
 	elif [[ $1 =~ [^[:digit:]] ]]; then
 		echo "digits only please"; false
 
 	elif (($1 <= 10)); then
-		echo $(($1 * 10)) > $ctlfile
+		echo $(($1 * adjust)) > $ctlfile
 
 	elif (($1 <= 100)); then
+		echo $(($1 * (adjust / 10))) > $ctlfile
+
+	elif (($1 < adjust)); then
+		echo "must give at least 10% if using absolute brightness"
+
+	elif (($1 < brightmax)); then
 		echo $1 > $ctlfile
 
 	else
