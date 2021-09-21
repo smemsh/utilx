@@ -76,8 +76,10 @@ bright ()
 }
 
 # for acpid invocation, see /etc/acpi
-brightup () { bright up; }
-brightdown () { bright down; }
+brightup        () { bright up; }
+brightnessup    () { bright up; }
+brightdown      () { bright down; }
+brightnessdown  () { bright down; }
 
 main () { ${0##*/} "$@"; }
 main "$@"
