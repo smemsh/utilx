@@ -4,8 +4,8 @@
 #   changes the backlight brightness, give 1-10 or 11-100
 #
 # scott@smemsh.net
-# http://smemsh.net/src/ratutils/
-# http://spdx.org/licenses/GPL-2.0
+# https://smemsh.net/src/utilx/
+# https://spdx.org/licenses/GPL-2.0
 #
 ##############################################################################
 
