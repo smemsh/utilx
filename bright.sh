@@ -43,12 +43,12 @@ bright ()
 		echo "only 0 or 1 arg supported"; false
 
 	elif [[ $1 == 'up' ]]; then
-		new=$(($brightnow + adjust))
+		new=$(($brightnow + (adjust / 4)))
 		if ((new > brightmax)); then new=$brightmax; fi
 		echo $new > $ctlfile
 
 	elif [[ $1 == 'down' ]]; then
-		new=$(($brightnow - adjust))
+		new=$(($brightnow - (adjust / 4)))
 		if ((new < 0)); then new=0; fi
 		echo $new > $ctlfile
 
