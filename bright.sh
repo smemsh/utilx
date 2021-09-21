@@ -17,6 +17,7 @@ fi
 ctldir=$dir
 ctlfile=$ctldir/brightness
 ctlnow=$ctldir/actual_brightness
+ctlmax=$ctldir/max_brightness
 brightnow=$(<$ctlnow)
 
 adjust=$((brightnow / 10))
@@ -35,6 +36,9 @@ bright ()
 
 	elif [[ $1 == 'down' ]]; then
 		echo $(($brightnow - adjust)) > $ctlfile
+
+	elif [[ $1 == 'max' ]]; then
+		echo $(< $ctlmax) > $ctlfile
 
 	elif [[ $1 =~ [^[:digit:]] ]]; then
 		echo "digits only please"; false
