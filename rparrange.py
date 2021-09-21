@@ -103,14 +103,23 @@ def get_current_window():
 
 ###
 
-def rpleft():
+def rpleft(count=1):
 
-    if curwin == windows[0]:
-        target = windows[-1] + 1
-    else:
-        target = windows[curidx - 1]
+    global curwin
 
-    rp(f"number {target}")
+    for i in range(count):
+        if curwin == windows[0]:
+            target = windows[-1] + 1
+        else:
+            target = windows[curidx - 1]
+
+        cmd = f"number {target}"
+        rp(cmd)
+        print(cmd)
+
+        if i < count:
+            windows.insert(0, windows.pop())
+            curwin = get_current_window()
 
 
 def rpright():
