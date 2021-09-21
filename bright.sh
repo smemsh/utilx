@@ -35,7 +35,7 @@ then echo "adjustment via brightmax will fail"; false; exit; fi
 bright ()
 {
 	if (($# == 0)); then
-		nowpercent=$(bc -ql <<< "scale=2;(97/100)*100")
+		nowpercent=$(bc -ql <<< "scale=2;($brightnow/$brightmax)*100")
 		nowpercent=${nowpercent%.*}
 		echo $nowpercent%
 
