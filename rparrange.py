@@ -125,14 +125,12 @@ def rpleft(count=1):
 def rpright():
 
     if curwin == windows[-1]:
-        if windows[0] == 0:
-            for i in range(len(windows) - 1, -1, -1):
-                print(f"rp number {windows[i]+1} {windows[i]}")
-        target = 0
+        rpleft(len(windows) - 1)
     else:
         target = windows[curidx + 1]
-
-    rp(f"number {target}")
+        cmd = f"number {target}"
+        rp(cmd)
+        print(cmd)
 
 
 def rprenumber():
