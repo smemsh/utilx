@@ -219,7 +219,7 @@ def rpafter():
     # shift everyone after the original current window to the right by
     # one, up until one that doesn't have a slot occupied after it
     #
-    for i in range(shiftuntil, curwin, -1):
+    for i in range(shiftuntil, curidx, -1):
         rp(f"number {windows[i] + 1} {windows[i]}")
 
     # move the new window to the previously occupied target now that it
