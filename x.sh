@@ -47,7 +47,10 @@ set_which_server ()
 
 	# we use this to run a nested X server
 	xsrvr=Xephyr
-	serveropts+=(-dpi ${XRC_DPI:-106} -screen ${XRC_HRES:-1024}x${XRC_YRES:-768})
+	serveropts+=(
+		-dpi ${XRC_DPI:-106}
+		-screen $((${XRC_HRES:-1024} - 6))x$((${XRC_YRES:-768} - 6))
+	)
 	srcdp=0
 	dstdp=1
 	wmarg=jwm
