@@ -50,6 +50,7 @@ set_which_server ()
 	serveropts+=(
 		-dpi ${XRC_DPI:-106}
 		-screen $((${XRC_HRES:-1024} - 6))x$((${XRC_YRES:-768} - 6))
+		-no-host-grab
 	)
 	srcdp=0
 	dstdp=1
