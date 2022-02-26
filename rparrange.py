@@ -158,8 +158,8 @@ def rpafter():
 
     target = curwin + 1
 
-    try: command = args[0]
-    except IndexError: bomb("rpafter: usage: rpafter <command>")
+    command = "\x20".join(args)
+    if not len(command): bomb("rpafter: usage: rpafter <command>")
 
     # new windows are spawned async, so we have to wait on it being
     # actually mapped before proceeding, otherwise we'll race with it.
