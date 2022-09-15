@@ -1,3 +1,4 @@
 #!/bin/sh
 
-ratpoison -c "$*"
+[[ $SDORFEHS_PID ]] && wm=sdorfehs || wm=ratpoison
+$wm -c "$*"
