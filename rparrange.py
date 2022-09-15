@@ -245,11 +245,14 @@ def main():
     windows = [int(x) for x in rp('windows %n').splitlines()]
     revwins = {windows[i]:i for i in range(len(windows))}
     curwin = get_current_window()
-    curidx = revwins[curwin]
-    dprint(f"windows: {windows}\n"
-           f"revwins: {revwins},\n"
-           f"curwin: {curwin},\n"
-           f"curidx: {curidx}")
+    curidx = ''
+    try:
+        curidx = revwins[curwin]
+    finally:
+        dprint(f"windows: {windows}\n"
+               f"revwins: {revwins},\n"
+               f"curwin: {curwin},\n"
+               f"curidx: {curidx}")
 
     try: subprogram = globals()[invname]
     except (KeyError, TypeError):
