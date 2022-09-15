@@ -40,13 +40,24 @@ classname2[nightly]='Brave-browser-nightly'
 # enable for additional prints, etc
 debug=${DEBUG:-0}
 
+# while transitioning ratpoison -> sdorfehs, we should work under either
+[[ $SDORFEHS_PID ]] && wm=sdorfehs || wm=ratpoison
+declare -A cmd_group_list cmd_group_move cmd_group_select
+cmd_group_list[sdorfehs]=vscreens
+cmd_group_list[ratpoison]=groups
+cmd_group_move[sdorfehs]=vmove
+cmd_group_move[ratpoison]=gmove
+cmd_group_select[sdorfehs]=vselect
+cmd_group_select[ratpoison]=gselect
+declare -p cmd_group_list cmd_group_move cmd_group_select
+
 if ((debug))
 then
-	debug_file=~/var/rpwm/wmpersist.debug
+	debug_file=~/var/$wm/wmpersist.debug
 	trunc $debug_file
 fi
 
-rpcmd='ratpoison -c'
+rpcmd="$wm -c"
 
 # total number of chromium windows we loop about
 #
@@ -95,7 +106,7 @@ get_window_rpdata ()
 	# TODO share with get_window_titles(), needs change there too
 	local sep="^\\w+\\s+\\d+\\s${classname1}\\s${classname2}\\s"
 
-	groups=($($rpcmd groups))
+	groups=($($rpcmd ${cmd_group_list[$wm]}))
 	for ((i = 0; i < ${#groups[@]}; i++)); do
 		[[ ${groups[i]} =~ [[:digit:]]+(.)(.*) ]]
 		groupname=${BASH_REMATCH[2]}
@@ -105,7 +116,7 @@ get_window_rpdata ()
 	done
 
 	(for group in ${groupnames[@]}; do
-		$rpcmd "gsel $group"
+		$rpcmd "${cmd_group_select[$wm]} $group"
 		$rpcmd "windows $group %i %a %c %t %n" |
 		grep -P "$sep" |
 		awk '{
@@ -116,7 +127,7 @@ get_window_rpdata ()
 		}'
 	done) | sort -snrk 2,2
 
-	$rpcmd "gsel $curgroup"
+	$rpcmd "${cmd_group_select[$wm]} $curgroup"
 }
 
 # use 'xwininfo' to print a tree of windows and fiter out
@@ -503,7 +514,7 @@ load    ()
 		# second arg for target window, as with the
 		# 'number' ratpoison command
 		#
-		$rpcmd "gsel $target_grp" ||
+		$rpcmd "${cmd_group_select[$wm]} $target_grp" ||
 			bomb "failed switch to target group $target_grp"
 		$rpcmd "select $target_num" ||
 			bomb "failed to select target window $target_num"
@@ -532,11 +543,14 @@ load    ()
 		#
 		if [[ $target_grp != $saved_grp ]]
 		then
-			$rpcmd "gmove $saved_grp" ||
+			$rpcmd "${cmd_group_move[$wm]} $saved_grp" ||
 				bomb "could not move window to group $saved_grp"
 
-			# window move does not change current group
-			$rpcmd "gsel $saved_grp"
+			# window move does not change current group in
+			# ratpoison, but does in sdorfehs.  this should be
+			# idempotent anyways
+			#
+			$rpcmd "${cmd_group_select[$wm]} $saved_grp"
 
 			# we have a switchgroup hook that always runs
 			# "other" so we have to switch back to the target
@@ -551,7 +565,7 @@ load    ()
 			# will most likely have switched to qtile before
 			# that's needed, this is just a hack for now
 			#
-			$rpcmd "other"
+			[[ $wm == ratpoison ]] && $rpcmd other
 
 			# since we switched group, the number data for our
 			# target window is wrong.  each group has its own
@@ -614,8 +628,8 @@ main ()
 		bomb "browser name invalid"
 	classname1=${classname1[$2]}
 	classname2=${classname2[$2]}
-	save_file=~/var/rpwm/wmpersist-$2.dat
-	lock_file=~/var/rpwm/rpwm.lock
+	save_file=~/var/$wm/wmpersist-$2.dat
+	lock_file=~/var/$wm/$wm.lock
 
 	exec 9>>$lock_file
 	flock -w 5 9 || bomb "could not acquire lock"
