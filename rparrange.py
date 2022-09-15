@@ -24,7 +24,7 @@ from subprocess import check_output
 
 from os.path import basename, dirname, expanduser
 from os import (
-    environ,
+    environ, getenv,
     open as osopen, read, write, close,
     O_RDWR,
     EX_OK as EXIT_SUCCESS,
@@ -43,9 +43,11 @@ RANDHEXLEN = RANDBITS // 4
 
 FDTIMEOUT = 5
 
-RPWMDIR = expanduser("~/var/rpwm")
-TRIGFILE = f"{RPWMDIR}/rpwm.fifo"
-LOCKFILE = f"{RPWMDIR}/rpwm.lock"
+wm = 'ratpoison' if getenv("SDORFEHS_PID") is None else 'sdorfehs'
+
+RPWMDIR = expanduser(f"~/var/{wm}")
+TRIGFILE = f"{RPWMDIR}/{wm}.fifo"
+LOCKFILE = f"{RPWMDIR}/{wm}.lock"
 lockfile = None
 
 ###
@@ -66,7 +68,7 @@ def dprint(*args):
 def rp(cmd):
 
     dprint(f"rp '{cmd}'")
-    return check_output(['ratpoison', '-c', cmd], text=True)
+    return check_output([wm, '-c', cmd], text=True)
 
 
 def acquire_lock():
