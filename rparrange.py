@@ -9,7 +9,7 @@
    - rprenumber: rearrange ratpoison window numbers sequentially starting at 0
 """
 
-__url__     = 'http://smemsh.net/src/utilpy/'
+__url__     = 'https://github.com/smemsh/utilpy/'
 __author__  = 'Scott Mcdermott <scott@smemsh.net>'
 __license__ = 'GPL-2.0'
 
