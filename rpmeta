@@ -27,7 +27,7 @@ main ()
 	while true
 	do
 		key=${!i}
-		ratpoison -c "meta $key"
+		rp meta $key
 		if ((++i <= $#)); then
 			sleep $sleep_interval
 			continue
