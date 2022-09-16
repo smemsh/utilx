@@ -24,10 +24,6 @@
 #   difficult, so we just emit a keypress instead (much easier) which
 #   works with whatever client we are connected with at present moment
 #
-# stat:
-#   - used by author
-#   - please notify if using
-#
 # scott@smemsh.net
 # http://smemsh.net/src/ratutils/
 # http://spdx.org/licenses/GPL-2.0
