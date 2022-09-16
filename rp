@@ -1,4 +1,4 @@
 #!/bin/sh
 
-[[ $SDORFEHS_PID ]] && wm=sdorfehs || wm=ratpoison
+[ $SDORFEHS_PID ] && wm=sdorfehs || wm=ratpoison
 $wm -c "$*"
