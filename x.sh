@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
 #
-# x.sh: x, x2
-#   starts x11 with rpwm (x) or nested xephyr+jwm (x2) or +qtile (x3)
-#
-# todo:
-#   - if [[ $DISPLAY ]] x2; else x; fi
-#   - x3 .. xN
+# x.sh: x, x2, x3, starts different wms running on x11:
+#   x: ratpoison on :0
+#   x2: nested xephyr+jwm
+#   x3: nested xephyr+qtile
 #
 # scott@smemsh.net
 # https://github.com/smemsh/utilx/
