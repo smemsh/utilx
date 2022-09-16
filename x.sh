@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # x.sh: x, x2, x3, starts different wms running on x11:
-#   x: ratpoison on :0
+#   x: sdorfehs on :0
 #   x2: nested xephyr+jwm
 #   x3: nested xephyr+qtile
 #
@@ -38,7 +38,7 @@ set_which_server ()
 	dstdp=0
 	vtnum=${XRC_VT:-2}
 	vtarg=vt$vtnum
-	wmarg=rpwm
+	wmarg=sdorfehs
 	;;
 
 	(x2) ###
