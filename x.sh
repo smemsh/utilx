@@ -26,7 +26,7 @@ set_which_server ()
 {
 	case $1 in
 
-	(x)
+	(x) ###
 
 	xsrvr=X	# debian 20151011, was migrated to xserver-xorg-legacy
 	#xsrvr=/usr/lib/xorg/Xorg.wrap
@@ -41,7 +41,7 @@ set_which_server ()
 	wmarg=rpwm
 	;;
 
-	(x2)
+	(x2) ###
 
 	# we use this to run a nested X server
 	xsrvr=Xephyr
@@ -55,7 +55,7 @@ set_which_server ()
 	wmarg=jwm
 	;;
 
-	(x3)
+	(x3) ###
 
 	# this is for experimenting with qtile
 	xsrvr=Xephyr
