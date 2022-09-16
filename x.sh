@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 #
-# x.sh: x, x2, x3, starts different wms running on x11:
+# x.sh: x, x2, x3, x4, starts different wms running on x11:
 #   x: sdorfehs on :0
 #   x2: nested xephyr+jwm
 #   x3: nested xephyr+qtile
+#   x4: sdorfehs on :3
 #
 # scott@smemsh.net
 # https://github.com/smemsh/utilx/
@@ -64,6 +65,20 @@ set_which_server ()
 	dstdp=2
 	wmarg="$HOME/venv/qtile/bin/qtile"
 	;;
+
+	(x4) ###
+
+	xsrvr=X
+	serveropts+=(-dpi ${XRC_DPI:-106})
+	serveropts+=(-keeptty -novtswitch)
+
+	srcdp=3
+	dstdp=3
+	vtnum=${XRC_VT:-3}
+	vtarg=vt$vtnum
+	wmarg=sdorfehs
+	;;
+
 
 	(*)
 
