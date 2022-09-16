@@ -225,7 +225,7 @@ main ()
 
 	tmpfile=`mktemp`
 	emit_mappings >| $tmpfile
-	ratpoison -c "source $tmpfile"
+	rp source $tmpfile
 	rm $tmpfile
 }
 
