@@ -73,6 +73,13 @@ make_search_url ()
 
 setgreys ()
 {
+	# urxvt maps the greys different than xterm and they are very dark
+	# which doesn't work well with some applications like elinks.  rather
+	# than set the color in those browsers we "whiten" the dark range of
+	# grey for rxvt terms, but this is probably best done in urxvt
+	# resources actually TODO
+	#
+	[[ $TERM =~ rxvt ]] || return
 	for greycolor in {232..247}
 	do
 		# https://stackoverflow.com/questions/27159322
