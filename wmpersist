@@ -49,7 +49,6 @@ cmd_group_move[sdorfehs]=vmove
 cmd_group_move[ratpoison]=gmove
 cmd_group_select[sdorfehs]=vselect
 cmd_group_select[ratpoison]=gselect
-declare -p cmd_group_list cmd_group_move cmd_group_select
 
 if ((debug))
 then
