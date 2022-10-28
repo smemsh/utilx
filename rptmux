@@ -141,6 +141,7 @@ add_maps_puncts ()
 	shiftmap['?']=question
 	shiftmap['"']=quotedbl
 	shiftmap['_']=underscore
+	shiftmap['Space']=space
 }
 
 # map also the rest of the normal keyboard keys
@@ -190,8 +191,8 @@ emit_mapping ()
 	# TODO: can ratpoison even emit eg control-x ? we should handle
 	# arbitrary key sequences if so
 	#
-	((${#key} > 1)) &&
-		return
+	if ((${#key} > 1)) && [[ $key != Space ]]; then
+		return; fi
 
 	# new way calls our 'rpmeta' command, which simply emits the key
 	# (with added 'S-' prefix if need be; see add_maps_puncts())
