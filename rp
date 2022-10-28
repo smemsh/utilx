@@ -1,4 +1,4 @@
 #!/bin/sh
 
-[[ $SDORFEHS_PID || $(wmname) == sdorfehs ]] || wm=ratpoison
+test -n $SDORFEHS_PID || $(wmname) == sdorfehs && wm=sdorfehs || wm=ratpoison
 $wm -c "$*"

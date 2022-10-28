@@ -41,7 +41,7 @@ classname2[nightly]='Brave-browser-nightly'
 debug=${DEBUG:-0}
 
 # while transitioning ratpoison -> sdorfehs, we should work under either
-[[ $SDORFEHS_PID || $(wmname) == sdorfehs ]] || wm=ratpoison
+[[ $SDORFEHS_PID || $(wmname) == sdorfehs ]] && wm=sdorfehs || wm=ratpoison
 declare -A cmd_group_list cmd_group_move cmd_group_select
 cmd_group_list[sdorfehs]=vscreens
 cmd_group_list[ratpoison]=groups
