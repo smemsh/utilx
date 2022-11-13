@@ -1,0 +1,4 @@
+#!/bin/sh
+
+xprop -id ${1:?} _NET_WM_PID \
+| awk '{print $3}'
