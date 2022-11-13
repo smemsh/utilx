@@ -17,6 +17,7 @@ XRC=~/.xrc
 declare -a \
 serveropts=(
 	-nolisten tcp
+	-core
 )
 
 # use invocation name to see if base (x) or nested xserver
