@@ -73,6 +73,15 @@ make_search_url ()
 
 setgreys ()
 {
+	# UPDATE need for this workaround turns out to be due to elinks color
+	# pallette for 256 colors being darker and elinks had a 16-color config
+	# for xterm-256color even though other -256color TERMs used 256 color
+	# configs.  so this override not needed -- we just change to 16 color
+	# config in elinks -- but we may use it later to remap something else,
+	# or for a different reason, so leaving the code intact for now
+	#
+	return
+
 	# urxvt maps the greys different than xterm and they are very dark
 	# which doesn't work well with some applications like elinks.  rather
 	# than set the color in those browsers we "whiten" the dark range of
