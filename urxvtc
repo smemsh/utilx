@@ -4,7 +4,7 @@
 export RXVT_SOCKET=$HOME/.urxvt/urxvtd-${HOSTNAME:-$(hostname)}$DISPLAY
 
 for try in 1 2 3; do
-	/usr/bin/urxvtc &>/dev/null && exit
+	/usr/bin/urxvtc >/dev/null 2>&1 && exit
 	[ $? -eq 2 ] && urxvtd -q -f -o
 	sleep 0.1
 done
