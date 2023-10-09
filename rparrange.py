@@ -179,8 +179,11 @@ def rpafter():
             bomb("no trigger received in time")
         trigchars = read(fd, RANDHEXLEN).decode()
         close(fd)
-        if (trigchars != trigger or len(trigchars) != RANDHEXLEN):
-            bomb("trigger received but not the right one")
+        tlen = len(trigchars)
+        if (tlen != RANDHEXLEN):
+            bomb(f"trigger {trigchars} had unexpected length {tlen}")
+        if (trigchars != trigger):
+            bomb(f"trigger {trigchars} received but expecting {trigger}")
     finally:
         rp(f"remhook {winhook}")
 
