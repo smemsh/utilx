@@ -60,7 +60,7 @@ def bomb(*args):
     exit(EXIT_FAILURE)
 
 def dprint(*args):
-    if not debug: return
+    #if not debug: return
     err('debug:', *args)
 
 ###
