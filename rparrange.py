@@ -53,7 +53,7 @@ lockfile = None
 ###
 
 def err(*args, **kwargs):
-    print(*args, file=stderr, **kwargs)
+    print(f"{invname}:", *args, file=stderr, **kwargs)
 
 def bomb(*args):
     err(*args)
