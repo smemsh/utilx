@@ -34,7 +34,7 @@ set_which_server ()
 	#xsrvr=/usr/lib/xorg/Xorg.wrap
 	#serveropts+=(-dpi 96)	# correct for gateway fpd1760 17" 1280x1024
 	serveropts+=(-dpi ${XRC_DPI:-106})	# correct for thinkpad x61s 11.3" 1024x768
-	serveropts+=(-keeptty -novtswitch)
+	serveropts+=(-keeptty -novtswitch -maxclients 2048)
 
 	srcdp=0
 	dstdp=0
