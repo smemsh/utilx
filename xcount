@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+#
+# xcount
+#   displays count of active Xorg client connections
+#
+# note:
+#   server active connection limit seems to be 2 under ostensible limit set by
+#   Xserver -maxclients, and/or method does not account for all connections
+#
+# scott@smemsh.net
+# https://github.com/smemsh/utilx/
+# https://spdx.org/licenses/GPL-2.0
+
+#
+if ((EUID != 0))
+then echo "must be root" >&2; false; exit; fi
+
+#
+lsof -Up `pgrep -P1 -x Xorg` -Fn \
+| grep ^n@/tmp/.X11-unix/X \
+| wc -l
