@@ -58,7 +58,7 @@ make_search_url ()
 		# pass through capitalized ORs unchanged as google
 		# treats them specially
 		#
-		[[ $param == 'OR' ]] && unset quote plus
+		[[ $param == 'OR' || $invname == 'ww' ]] && unset quote plus
 		[[ $param =~ ^- ]] && { plus=$minus; param=${param/-/}; }
 
 		param=`urlencode "$param"`
@@ -67,7 +67,11 @@ make_search_url ()
 		shift
 	done
 
-	sbase="www.google.com/search\?hl=all\&${datearg}\&q="
+	if [[ $invname == 'ww' ]]
+	then sbase="en.wikipedia.org/wiki/Special:Search?search="
+	else sbase="www.google.com/search\?hl=all\&${datearg}\&q="
+	fi
+
 	search=${search/+/} # ??? why is this here?
 }
 
@@ -111,6 +115,7 @@ main ()
 	case $invname in
 	(ggw) defbrowser='vimb' ;;
 	(gg) setgreys; defbrowser='elinks' ;;
+	(ww) setgreys; defbrowser='elinks' ;;
 	(*) echo "unknown invocation name"; false; exit ;;
 	esac
 
