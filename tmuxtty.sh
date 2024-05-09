@@ -19,7 +19,7 @@ tmuxtty ()
 {
 	local target=$(
 		tmux list-panes -a -F '#{pane_id}#{pane_tty}' \
-		| grep /dev/$1 \
+		| grep /dev/$1$ \
 		| awk -F / '{print $1}'
 	)
 	tmux switch-client -t ${target:?}
