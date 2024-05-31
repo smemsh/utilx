@@ -17,6 +17,7 @@ from sys import argv, stdin, stdout, stderr, exit
 
 from re import match
 from fcntl import flock, LOCK_EX
+from shlex import quote as shquote
 from signal import signal, alarm, SIGALRM, SIG_IGN
 from select import select
 from random import getrandbits
@@ -160,7 +161,7 @@ def rpafter():
 
     target = curwin + 1
 
-    command = "\x20".join(args)
+    command = "\x20".join([shquote(arg) for arg in args])
     if not len(command): bomb("rpafter: usage: rpafter <command>")
 
     # new windows are spawned async, so we have to wait on it being
