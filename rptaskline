@@ -1,0 +1,45 @@
+#!/bin/bash
+#
+# rptaskline
+#   - set up taskw/timew environment variables
+#   - run a given command with stifled stdio
+#   - optionally feed a ratpoison-prompted string to the command
+#   - report failure if nonzero exit
+#   - runs a given after-command, output to invoker (ratpoison) for display
+#
+# args:
+#   if no args, runs 'taskline' only, with no '$1:' prefixed
+#   if one arg, runs $1, $2 set to 'taskline'
+#   if two args, runs $1, $2 set to second arg
+#   if first arg is -p or --prompt, reads user input, pass to $1
+#
+# output:
+#   if success, ratpoison echo "$1: `$2`"
+#   if failure, ratpoison echo "$1: failed: `$2`"
+#
+# scott@smemsh.net
+# https://github.com/smemsh/utilx/
+# https://spdx.org/license/GPL-2.0
+#
+##############################################################################
+
+# TODO: timeout
+
+source ~/.taskenv 2>/dev/null
+
+if [[ $1 == '-p' || $1 == '--prompt' ]]
+then prompt=1; shift; fi
+
+taskcmd=$1
+taskafter=${2:-taskline}
+
+if (($# == 0))
+then rp echo "$(taskline)"; exit; fi
+
+if ((prompt))
+then input=$(rp prompt "$taskcmd: "); fi
+
+if ! $taskcmd $input
+then taskcmd="$taskcmd: failed"; fi
+
+rp echo "$taskcmd -> $($taskafter)"
