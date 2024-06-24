@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+#
+# rptaskmenu
+#   select amongst recent tasks with demnu in ratpoison
+#
+# scott@smemsh.net
+# https://github.com/smemsh/utilx/
+# https://spdx.org/license/GPL-2.0
+#
+
+source ~/.taskenv 2>/dev/null || true
+
+menulen=26
+
+selected="$(
+	timerecent $menulen \
+	| while read -r line && ((i < menulen)); \
+	  do printf -v char %x $((i++ + 0x61)); \
+	     printf "%b %s\\n" "\\x$char" "$line"; done \
+	| dmenu -p task\? -l $menulen \
+)"
+
+# cancel / empty / not selecting is not an error
+if ! [[ $selected ]]; then true; exit; fi
+
+# everything else is an error
+set -e
+
+read menuchar statchar label fqpath rest <<< "$selected"
+fql=$fqpath/$label
+if ! [[ $fql =~ ^time/[^/]+$ ]]
+then
+	uuid=$(taskuuid -x $fql); [[ $uuid ]]
+	tags="$(timewtags $uuid)"; [[ $tags ]]
+fi
+
+timew start ${tags:-$fql}
+rp echo "taskstart -> $(taskline)"
