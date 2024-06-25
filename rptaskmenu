@@ -26,7 +26,7 @@ if ! [[ $selected ]]; then true; exit; fi
 # everything else is an error
 set -e
 
-read menuchar statchar label fqpath rest <<< "$selected"
+read -r menuchar statchar label fqpath rest <<< "$selected"
 fql=$fqpath/$label
 if ! [[ $fql =~ ^time/[^/]+$ ]]
 then
