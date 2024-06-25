@@ -16,6 +16,9 @@
 # output:
 #   if success, ratpoison echo "$1: `$2`"
 #   if failure, ratpoison echo "$1: failed: `$2`"
+#   command -> [if different: before-fql -> after-fql] \
+#              [if different: before-status -> after status]
+#   taskcont -> noop
 #
 # scott@smemsh.net
 # https://github.com/smemsh/utilx/
@@ -26,6 +29,9 @@
 # TODO: timeout
 
 source ~/.taskenv 2>/dev/null
+
+#
+read fql_before stc_before __ <<< "$(taskline)"
 
 if [[ $1 == '-p' || $1 == '--prompt' ]]
 then prompt=1; shift; fi
@@ -42,4 +48,24 @@ then input=$(rp prompt "$taskcmd: "); fi
 if ! $taskcmd $input
 then taskcmd="$taskcmd: failed"; fi
 
-rp echo "$taskcmd -> $($taskafter)"
+#
+taskline="$(taskline)"
+read fql_after stc_after __ <<< "$taskline"
+
+[[ $fql_before != $fql_after ]]; fql_changed=$((!($?)))
+[[ $stc_before != $stc_after ]]; stc_changed=$((!($?)))
+any_changed=$((fql_changed | stc_changed))
+
+# cmd: [oldfql] [oldstat] [->] taskline
+outline=($taskcmd:)
+((fql_changed)) && outline+=($fql_before)
+((stc_changed)) && outline+=("$stc_before")
+((any_changed)) && outline+=('->')
+
+# re-use taskline if requested since we already have it from $after[]
+if [[ $taskafter == taskline ]]
+then outline+=("$taskline")
+else outline+=("$(taskafter)")
+fi
+
+rp echo "${outline[*]}"
