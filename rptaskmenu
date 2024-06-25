@@ -35,4 +35,3 @@ then
 fi
 
 timew start ${tags:-$fql}
-rp echo "taskstart -> $(taskline)"
