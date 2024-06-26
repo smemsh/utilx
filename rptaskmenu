@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # rptaskmenu
-#   select amongst recent tasks with demnu in ratpoison
+#   select amongst recent timew/taskw tasks by dmenu, "timew start" it
 #
 # scott@smemsh.net
 # https://github.com/smemsh/utilx/
