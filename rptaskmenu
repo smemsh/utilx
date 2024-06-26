@@ -8,7 +8,7 @@
 # https://spdx.org/license/GPL-2.0
 #
 
-source ~/.taskenv 2>/dev/null || true
+source ~/.taskenv 2>/dev/null
 
 menulen=26
 
