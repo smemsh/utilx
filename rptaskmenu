@@ -10,8 +10,7 @@
 
 source ~/.taskenv 2>/dev/null
 
-menulen=26
-
+menulen=26 # menu entries preceded by alphabet letters for selection ease
 selected="$(
 	timerecent $menulen \
 	| while read -r line && ((i < menulen)); \
