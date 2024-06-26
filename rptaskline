@@ -54,7 +54,7 @@ taskline="$(taskline)"
 read fql_after stc_after __ <<< "$taskline"
 
 [[ $fql_before != $fql_after ]]; fql_changed=$((!($?)))
-[[ $stc_before != $stc_after ]]; stc_changed=$((!($?)))
+[[ $stc_before != "$stc_after" ]]; stc_changed=$((!($?)))
 any_changed=$((fql_changed | stc_changed))
 
 # cmd: [oldfql] [oldstat] [->] taskline
