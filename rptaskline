@@ -29,6 +29,7 @@
 # TODO: timeout
 
 source ~/.taskenv 2>/dev/null
+logfile=~/.task/rptaskline.log
 
 #
 read fql_before stc_before __ <<< "$(taskline)"
@@ -68,4 +69,6 @@ then outline+=("$taskline")
 else outline+=("$(taskafter)")
 fi
 
-rp echo "${outline[*]}"
+outstring="${outline[*]}"
+echo "$outstring" >> $logfile
+rp echo "$outstring"
