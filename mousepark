@@ -1,0 +1,154 @@
+#!/usr/bin/env python3
+"""
+hide/unhide vertical tab bar by moving mouse to left edge of screen
+
+- restores mouse to previous saved position if statefile exists
+- otherwise, saves current position in ~/var/mousepark/position.dat
+- then moves mouse to left edge of screen
+"""
+__url__     = 'https://github.com/smemsh/utilx/'
+__author__  = 'Scott Mcdermott <scott@smemsh.net>'
+__license__ = 'GPL-2.0'
+
+import argparse
+
+from sys import exit, hexversion
+if hexversion < 0x030900f0: exit("minpython: %s" % hexversion)
+
+from sys import argv, stdout, stderr, exit
+from traceback import print_exc
+
+from os.path import basename, dirname, isdir, exists
+from os import (
+    getenv, remove,
+    chdir, makedirs,
+    access, R_OK, W_OK,
+    EX_OK as EXIT_SUCCESS,
+    EX_SOFTWARE as EXIT_FAILURE,
+)
+
+from pynput.mouse import Controller
+
+###
+
+def err(*args, **kwargs):
+    print(*args, file=stderr, **kwargs)
+
+def bomb(*args, **kwargs):
+    err(*args, **kwargs)
+    exit(EXIT_FAILURE)
+
+###
+
+def process_args():
+
+    global args
+
+    def addopt(p, flagchar, longopt, help=None, /, **kwargs):
+        options = list(("-%s --%s" % (flagchar, longopt)).split())
+        p.add_argument(*options, help=help, **kwargs)
+
+    p = argparse.ArgumentParser(
+        prog            = invname,
+        description     = __doc__.strip(),
+        allow_abbrev    = False,
+        formatter_class = argparse.RawTextHelpFormatter,
+    )
+    addopt (p, 's', 'statefile', 'path to position state file')
+    args = p.parse_args(args)
+
+    return args.statefile \
+        or f"{getenv('HOME')}/var/{invname}/position.dat"
+
+
+def check_sanity(path):
+
+    sdir = dirname(path)
+    sfile = basename(path)
+
+    if not exists(sdir):
+        try: makedirs(sdir)
+        except: bomb(f"statedir '{sdir}' creation failed")
+
+    elif not isdir(sdir):
+        bomb(f"refusing overwrite of '{sdir}' (not a directory)")
+
+    if not access(sdir, W_OK):
+        bomb(f"cannot write to statedir '{sdir}'")
+
+    if exists(path) and not access(path, R_OK|W_OK):
+        bomb(f"cannot write to statefile '{sfile}'")
+
+    return sdir, sfile
+
+###
+
+def mousepark():
+
+    statepath = process_args()
+    statedir, statefile = check_sanity(statepath)
+
+    try: chdir(statedir)
+    except: bomb(f"cannot change directory to '{statedir}'")
+
+    if exists(statefile):
+        # restore and erase state
+        f = open(statefile)
+        x = int(f.readline())
+        y = int(f.readline())
+        mouse.position = (x, y)
+        try: remove(statefile)
+        except: bomb(f"cannot remove {statepath}")
+    else:
+        # park and save state
+        x, y = mouse.position
+        f = open(statefile, 'xt')
+        f.writelines([f"{i}\n" for i in (x, y)])
+        mouse.position = (0, y)
+
+###
+
+def main():
+
+    if debug == 1:
+        breakpoint()
+
+    try: subprogram = globals()[invname]
+    except (KeyError, TypeError):
+        from inspect import trace
+        if len(trace()) == 1: bomb(f"unimplemented")
+        else: raise
+
+    return subprogram()
+
+###
+
+if __name__ == "__main__":
+
+    invname = basename(argv[0])
+    args = argv[1:]
+
+    from bdb import BdbQuit
+    debug = int(getenv('DEBUG') or 0)
+    if debug:
+        import pdb
+        from pprint import pp
+        err('debug: enabled')
+
+    try: mouse = Controller()
+    except: bomb("cannot get mouse controller object")
+
+    try: main()
+    except BdbQuit: bomb("debug: stop")
+    except SystemExit: raise
+    except KeyboardInterrupt: bomb("interrupted")
+    except:
+        print_exc(file=stderr)
+        if debug: pdb.post_mortem()
+    finally: # cpython bug 55589
+        try: stdout.flush()
+        finally:
+            try: stdout.close()
+            finally:
+                try: stderr.flush()
+                finally: stderr.close()
