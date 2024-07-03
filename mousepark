@@ -99,12 +99,15 @@ def mousepark():
         mouse.position = (x, y)
         try: remove(statefile)
         except: bomb(f"cannot remove {statepath}")
+
     else:
         # park and save state
         x, y = mouse.position
         f = open(statefile, 'xt')
         f.writelines([f"{i}\n" for i in (x, y)])
-        mouse.position = (0, y)
+
+        # x must be a few pixels from edge for vtabs to unfurl
+        mouse.position = (5, y)
 
 ###
 
