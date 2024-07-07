@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+#
+# rptaskdesc
+#   display current task description as a ratpoison message
+#
+
+source ~/.taskenv
+rp echo $(taskfield `taskuuid` description)
