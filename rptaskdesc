@@ -5,4 +5,7 @@
 #
 
 source ~/.taskenv
-rp echo $(taskfield `taskuuid` description)
+declare -a tasknow=($(tasknow))
+fql=${tasknow[0]}
+
+rp echo "$(taskfield `taskuuid` description) ($fql)"
