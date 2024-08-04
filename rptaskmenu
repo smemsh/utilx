@@ -10,9 +10,12 @@
 
 source ~/.taskenv 2>/dev/null
 
+# if invoked as "rptaskmenu", exclude completed; "rptaskallmenu" don't
+[[ ${0##*/} == rptaskmenu ]] && filteropt=--open
+
 menulen=26 # menu entries preceded by alphabet letters for selection ease
 selected="$(
-	timerecent $menulen \
+	timerecent $filteropt $menulen \
 	| while read -r line && ((i < menulen)); \
 	  do printf -v char %x $((i++ + 0x61)); \
 	     printf "%b %s\\n" "\\x$char" "$line"; done \
