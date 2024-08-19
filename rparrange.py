@@ -88,7 +88,7 @@ def acquire_lock():
 
     lockfile = open(LOCKFILE, 'a')
     signal(SIGALRM, lock_timeout_handler)
-    alarm(5)
+    alarm(10)
     flock(lockfile, LOCK_EX)
     signal(SIGALRM, SIG_IGN)
 
