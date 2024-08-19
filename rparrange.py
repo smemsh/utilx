@@ -13,7 +13,11 @@ __url__     = 'https://github.com/smemsh/utilpy/'
 __author__  = 'Scott Mcdermott <scott@smemsh.net>'
 __license__ = 'GPL-2.0'
 
-from sys import argv, stdin, stdout, stderr, exit
+
+from sys import exit, hexversion
+if hexversion < 0x030900f0: exit("minpython: %s" % hexversion)
+
+from sys import argv, stdin, stdout, stderr
 
 from re import match
 from fcntl import flock, LOCK_EX
@@ -244,7 +248,8 @@ def main():
 
     global windows, revwins, curwin, curidx
 
-    if debug: breakpoint()
+    if debug == 1:
+        breakpoint()
 
     acquire_lock()
 
@@ -262,7 +267,9 @@ def main():
 
     try: subprogram = globals()[invname]
     except (KeyError, TypeError):
-        bomb(f"unimplemented command '{invname}'")
+        from inspect import trace
+        if len(trace()) == 1: bomb("unimplemented")
+        else: raise
 
     ret = subprogram()
     release_lock()
@@ -272,24 +279,27 @@ def main():
 
 if __name__ == "__main__":
 
-    from sys import version_info as pyv
-    if pyv.major < 3 or pyv.major == 3 and pyv.minor < 9:
-        bomb("minimum python 3.9")
-
     invname = basename(argv[0])
     args = argv[1:]
 
-    try:
-        from bdb import BdbQuit
-        if bool(environ['DEBUG']):
-            from pprint import pprint as pp
-            debug = True
-            err('debug-mode-enabled')
-        else:
-            raise KeyError
-
-    except KeyError:
-        debug = False
+    from bdb import BdbQuit
+    if debug := int(getenv('DEBUG') or 0):
+        import pdb
+        from pprint import pp
+        err('debug: enabled')
+        unsetenv('DEBUG') # otherwise forked children hang
 
     try: main()
-    except BdbQuit: bomb("debug-stop")
+    except BdbQuit: bomb("debug: stop")
+    except SystemExit: raise
+    except KeyboardInterrupt: bomb("interrupted")
+    except:
+        print_exc(file=stderr)
+        if debug: pdb.post_mortem()
+    finally: # cpython bug 55589
+        try: stdout.flush()
+        finally:
+            try: stdout.close()
+            finally:
+                try: stderr.flush()
+                finally: stderr.close()
