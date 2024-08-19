@@ -79,7 +79,7 @@ def acquire_lock():
     if invname == 'rptrigger':
         return # called by self, avoid deadlock
 
-    def lock_timeout_handler():
+    def lock_timeout_handler(*_):
         bomb("could not acquire lock")
 
     lockfile = open(LOCKFILE, 'a')
