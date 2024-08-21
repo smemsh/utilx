@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+#
+# rphelptop
+#   display ratpoison keybinds having to do with taskwarrior/timewarrior
+#
+# scott@smemsh.net
+# https://github.com/smemsh/utilx/
+# https://spdx.org/licenses/GPL-2.0
+#
+
+ourbind=$(
+	rp help top \
+	| grep ${0##*/} \
+	| field 1 \
+)
+
+rp echo "$( \
+	grep -e time -e task -e ncal ~/.jcsrc \
+	| nocomments \
+	| grep -vw $ourbind \
+	| field 3,5- \
+	| sed $'s,\x20,\t,' \
+	| column -s $'\t' -t \
+)"
