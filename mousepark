@@ -29,6 +29,12 @@ from os import (
 
 from pynput.mouse import Controller
 
+# unpark moves to at least this X coordinate; ideal value
+# depends on user's vtab bar width (is draggable)
+# todo: env, rcfile, or brave settings vbar width query
+#
+MINX = 1380
+
 ###
 
 def err(*args, **kwargs):
@@ -96,7 +102,7 @@ def mousepark():
         f = open(statefile)
         x = int(f.readline())
         y = int(f.readline())
-        mouse.position = (x, y)
+        mouse.position = (max(x, MINX), y)
         try: remove(statefile)
         except: bomb(f"cannot remove {statepath}")
 
