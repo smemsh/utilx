@@ -113,8 +113,8 @@ def mousepark():
         f = open(statefile)
         x = int(f.readline())
         y = int(f.readline())
-        minx = int(width / 3)  # left unpark
-        maxx = minx * 2  # right unpark
+        minx = int(width / 3) + 100  # left unpark just right of 1/3
+        maxx = int(width / 3) * 2 - 100  # right unpark just left of 2/3
         newx = min(x, maxx) if args.right else max(x, minx)
         mouse.position = (newx, y)
         try: remove(statefile)
