@@ -27,13 +27,9 @@ from os import (
     EX_SOFTWARE as EXIT_FAILURE,
 )
 
+from Xlib.display import Display
+from Xlib.Xatom import CARDINAL
 from pynput.mouse import Controller
-
-# unpark moves to at least this X coordinate; ideal value
-# depends on user's vtab bar width (is draggable)
-# todo: env, rcfile, or brave settings vbar width query
-#
-MINX = 1380
 
 ###
 
@@ -54,13 +50,17 @@ def process_args():
         options = list(("-%s --%s" % (flagchar, longopt)).split())
         p.add_argument(*options, help=help, **kwargs)
 
+    def addflag(*args, **kwargs):
+        addopt(*args, action='store_true', **kwargs)
+
     p = argparse.ArgumentParser(
         prog            = invname,
         description     = __doc__.strip(),
         allow_abbrev    = False,
         formatter_class = argparse.RawTextHelpFormatter,
     )
-    addopt (p, 's', 'statefile', 'path to position state file')
+    addopt  (p, 's', 'statefile', 'path to position state file')
+    addflag (p, 'r', 'right', 'park cursor to right, not left')
     args = p.parse_args(args)
 
     return args.statefile \
@@ -97,12 +97,24 @@ def mousepark():
     try: chdir(statedir)
     except: bomb(f"cannot change directory to '{statedir}'")
 
+    try:
+        rootwin = display.screen(0)['root']
+        propname = display.get_atom('_NET_WORKAREA')
+        workarea = rootwin.get_full_property(propname, CARDINAL, 32)
+        width = workarea.value[2]
+        height = workarea.value[3]
+    except:
+        bomb("cannot determine window size")
+
     if exists(statefile):
         # restore and erase state
         f = open(statefile)
         x = int(f.readline())
         y = int(f.readline())
-        mouse.position = (max(x, MINX), y)
+        minx = int(width / 3)  # left unpark
+        maxx = minx * 2  # right unpark
+        newx = min(x, maxx) if args.right else max(x, minx)
+        mouse.position = (newx, y)
         try: remove(statefile)
         except: bomb(f"cannot remove {statepath}")
 
@@ -113,7 +125,9 @@ def mousepark():
         f.writelines([f"{i}\n" for i in (x, y)])
 
         # x must be a few pixels from edge for vtabs to unfurl
-        mouse.position = (5, y)
+        margin = 5
+        newx = width - margin if args.right else margin
+        mouse.position = (newx, y)
 
 ###
 
@@ -146,6 +160,9 @@ if __name__ == "__main__":
 
     try: mouse = Controller()
     except: bomb("cannot get mouse controller object")
+
+    try: display = Display()
+    except: bomb("cannot get display")
 
     try: main()
     except BdbQuit: bomb("debug: stop")
