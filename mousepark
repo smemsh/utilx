@@ -29,6 +29,8 @@ from os import (
 
 from Xlib.display import Display
 from Xlib.Xatom import CARDINAL
+
+# TODO: Xlib.display.Display().warp_pointer
 from pynput.mouse import Controller
 
 ###
@@ -128,6 +130,10 @@ def mousepark():
         margin = 5
         newx = width - margin if args.right else margin
         mouse.position = (newx, y)
+
+        # todo: does not work for some reason, maybe look at lib code
+        #display.warp_pointer(newx, y, rootwin)
+        #print(f"display.warp_pointer(x: {newx}, y: {y}, rootwin: {rootwin}")
 
 ###
 
