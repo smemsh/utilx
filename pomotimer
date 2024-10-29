@@ -1,0 +1,80 @@
+#!/bin/bash
+#
+# pomotimer
+#   simple countdown timer, flashes screen at conclusion
+#
+# desc:
+#   - sleeps arg1 minutes
+#   - prints to stdout each minute
+#   - flashes screen when timer expires
+#
+# scott@smemsh.net
+# https://github.com/smemsh/pomoutils/
+# https://spdx.org/licenses/GPL-2.0
+#
+
+if [[ $1 == '-o' || $1 == '--once' ]]
+then let ++runonce; shift; fi
+
+if (($# != 1 && $# != 2))
+then echo "\
+mandatory arg1: sleeptime
+optional arg2: label"; false; exit; fi
+
+minutes=$1
+label=${2:--}
+
+sleepsecs=$(($1 * 60))
+
+SECONDS=`date +$HISTTIMEFORMAT`
+startsecs=$SECONDS
+lastsecs=$startsecs
+#flashargs=(7 100)
+flashargs=(8 200)
+
+was_paused=0
+
+msg ()
+{
+	local secs=$((SECONDS - lastsecs))
+	echo $(date +$HISTTIMEFORMAT) "$1" $label $((secs / 60))m "(${secs}s)"
+	lastsecs=$SECONDS
+}
+
+stty -ctlecho
+
+trap stop_and_resume TSTP
+stop_and_resume () { msg stop; kill -STOP $$; was_paused=1; msg resume; }
+
+trap restart_loop USR1
+restart_loop () { ((runonce)) && return; msg restart; loop=1; was_paused=1; }
+
+trap exit_script EXIT
+exit_script ()
+{
+	printf -v m "%s (counted %s, %sm)" \
+		$(((sleepsecs == slept)) && printf finished || printf exited) \
+		$slept \
+		$(bc <<< "scale = 2; $slept / 60") \
+	; msg "$m"
+}
+
+
+while true
+do
+	((runonce)) && ((loopcount)) && break
+	msg start
+	for ((slept = 0; slept < sleepsecs; slept++)); do
+		sleep 1 & wait
+		((runonce))
+		# todo: probably the pause thing is racy.  the whole thing is hack
+		if (((slept % 60) == 0 || was_paused)); then
+			printf "%02u\r" $((minutes - (slept / 60)))
+			((was_paused)) && was_paused=0
+		fi
+		if ((loop))
+		then loop=0; continue 2; fi
+	done
+	xflashscreen ${flashargs[@]}
+	let ++loopcount
+done
