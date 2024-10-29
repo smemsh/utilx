@@ -633,7 +633,6 @@ main ()
 	exec 9>>$lock_file
 	flock -w 5 9 || bomb "could not acquire lock"
 
-	# todo: use libsh version of this code
 	if function_exists $1
 	then $1 "${@:2}"
 	else bomb "unimplemented"; fi

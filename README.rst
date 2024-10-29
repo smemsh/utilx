@@ -99,18 +99,6 @@ The scripts use the following commands:
 - xlsatoms (debugging)
 - lsw (debugging)
 
-Also, the scripts use some routines from my shell script library,
-libsh_, but those routines could be added directly to the script.
-You'll need to do one of the following:
-
-- install the `shell library`__ and adjust the path herein
-- manually add the routines pulled in by `require` and `include`
-- reimplement without them (e.g. ``setenv var val`` to ``var=val``)
-
-.. _libsh: http://smemsh.net/src/libsh/
-
-__ libsh_
-
 
 todo
 ------------------------------------------------------------------------------
@@ -121,7 +109,6 @@ todo
   command
 - move usage to a constant and emit rather than using comment block to
   document
-- use debug routines from libsh rather than ad-hoc inline test-and-print
 - this does not work if one of the tabs is a Chromium bookmark manager,
   unknown reason, have to trace this down UPDATE: it may be because
   Chrome leaves around withdrawn windows seems like for eg bookmarks and
