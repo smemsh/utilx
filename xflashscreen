@@ -9,7 +9,6 @@
 #
 # deps:
 #   - http://smemsh.net/src/ratutils/xinvert
-#   - http://smemsh.net/src/libsh (see include and require)
 #
 # stat:
 #   - used in production by author
@@ -21,8 +20,10 @@
 #
 ##############################################################################
 
-source ~/lib/sh/include
-require msleep
+msleep ()
+{
+	sleep $(bc <<< "0.001 * $1")
+}
 
 main ()
 {

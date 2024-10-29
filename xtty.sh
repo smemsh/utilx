@@ -4,7 +4,6 @@
 #   switches x11 window to that of pid or tty $1, or to x11 vt if not in x11
 #
 # deps:
-#   - http://smemsh.net/src/libsh/
 #   - wmctrl
 #
 # todo:
@@ -16,11 +15,7 @@
 #
 ##############################################################################
 
-source ~/lib/sh/include
-
-require pidenv
-require bomb
-require get_invocation_name
+bomb () { echo ${FUNCNAME[1]}: ${@}, aborting; exit 1; }
 
 ###
 
@@ -44,6 +39,33 @@ getpid ()
 		echo "could not find ps:$psarg arg:$userarg"; false; exit; fi
 
 	printf $pidarg
+}
+
+#
+#   one-arg: all variables of pid $1 in var=val
+# multi-arg: only specified env $2..$n of pid $1 in var=val
+#
+# todo: trailing '=' on variables gets just value (in exe wrapper?)
+# todo: envd so we get unexported variables, possibly functions
+#
+pidenv ()
+{
+	local pid=$1; shift
+	local envfile=/proc/$pid/environ
+	local varval var val v
+
+	test -r $envfile || exit 1
+
+	if (($# == 0)); then
+		# one arg case
+		tr '\0' '\n' < $envfile
+	else
+		# multi-arg case
+		while read -rsd $'\0' varval; do
+			var=${varval%=*}; val=${varval#*=}
+			for v; do [[ $v == $var ]] && echo "$var=$val"; done
+		done < $envfile
+	fi
 }
 
 ###
@@ -88,4 +110,4 @@ main ()
 	else echo "unimplemented invname '$invname'"; exit 1; fi
 }
 
-main `get_invocation_name` "$@"
+main ${0##*/} "$@"

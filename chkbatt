@@ -5,7 +5,6 @@
 #   (run at intervals with eg cron)
 #
 # deps:
-#   - http://smemsh.net/src/libsh/ (see include and require)
 #   - http://smemsh.net/src/ratutils/xflashscreen
 #   - only works in xorg
 #
@@ -22,9 +21,8 @@
 #
 ##############################################################################
 
-source ~/lib/sh/include
-include setenv
-require bomb
+setenv () { local v=$1; shift; IFS= eval $v="\$*"; }
+bomb   () { echo ${FUNCNAME[1]}: ${@}, aborting; exit 1; }
 
 debug=0
 
@@ -33,8 +31,8 @@ debug=0
 # thresholds (number of elements must align)
 # (capacity > threshold[n], ring bell flashes[n])
 #
-setarr thresholds	0  7 13 19 33 66 89
-setarr flashes		6  5  4  3  2  1  0
+thresholds=(0  7 13 19 33 66 89)
+flashes=(   6  5  4  3  2  1  0)
 
 # how long between flash cycles (which repeat for flashes[n])
 #
