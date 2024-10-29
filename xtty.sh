@@ -10,7 +10,7 @@
 #   - we don't seem to switch the rpwm group or properly select window
 #
 # scott@smemsh.net
-# http://smemsh.net/src/ratutils/
+# https://github.com/smemsh/utilx/
 # http://spdx.org/license/GPL-2.0
 #
 ##############################################################################

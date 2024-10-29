@@ -11,7 +11,7 @@
 #     max/10 < N < max  (1/max) * N
 #
 # scott@smemsh.net
-# https://smemsh.net/src/utilx/
+# https://github.com/smemsh/utilx/
 # https://spdx.org/licenses/GPL-2.0
 #
 ##############################################################################

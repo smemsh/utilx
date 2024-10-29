@@ -35,7 +35,7 @@ update this file or remove it...
 ____
 
 | scott@smemsh.net
-| http://smemsh.net/src/ratutils/
+| https://github.com/smemsh/utilx/
 | http://spdx.org/licenses/GPL-2.0
 |
 
