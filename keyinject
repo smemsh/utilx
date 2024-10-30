@@ -1,0 +1,123 @@
+#!/usr/bin/env python3
+"""
+inject keys given as args using linux uinput events
+
+- give keys as sequential arguments at program invocation
+- keys to be injected can be X keysym names as in X11/keysymdef.h
+- program requires root privileges
+    - XXX does not work anyways, change it to use x11, then can use maybe to
+      replace some rptmux functionality with something faster?
+
+"""
+__url__     = 'https://github.com/smemsh/utilx/'
+__author__  = 'Scott Mcdermott <scott@smemsh.net>'
+__license__ = 'GPL-2.0'
+
+import argparse
+
+from sys import exit, hexversion
+if hexversion < 0x030900f0: exit("minpython: %s" % hexversion)
+
+from sys import argv, stdout, stderr, exit
+from traceback import print_exc
+
+from os.path import basename
+from os import (
+    getenv,
+    EX_OK as EXIT_SUCCESS,
+    EX_SOFTWARE as EXIT_FAILURE,
+)
+
+from pynput.keyboard import Key, Controller
+
+###
+
+def err(*args, **kwargs):
+    print(*args, file=stderr, **kwargs)
+
+def bomb(*args, **kwargs):
+    err(*args, **kwargs)
+    exit(EXIT_FAILURE)
+
+###
+
+def process_args():
+
+    global args
+
+    def addarg(p, vname, vdesc, help=None, /, **kwargs):
+        p.add_argument(vname, metavar=vdesc, help=help, **kwargs)
+
+    def addargs(*args, **kwargs):
+        addarg(*args, nargs='*', **kwargs)
+
+    p = argparse.ArgumentParser(
+        prog            = invname,
+        description     = __doc__.strip(),
+        allow_abbrev    = False,
+        formatter_class = argparse.RawTextHelpFormatter,
+    )
+    addargs (p, 'keypresses', 'letters or keysyms to inject')
+
+    return p.parse_args(args).keypresses
+
+
+def check_sanity():
+    return True
+
+###
+
+def keyinject():
+
+    keylist = process_args()
+    if not check_sanity(): bomb("insane")
+
+    for key in keylist:
+        keyboard.tap(key)
+
+###
+
+def main():
+
+    if debug == 1:
+        breakpoint()
+
+    try: subprogram = globals()[invname]
+    except (KeyError, TypeError):
+        from inspect import trace
+        if len(trace()) == 1: bomb(f"unimplemented")
+        else: raise
+
+    return subprogram()
+
+###
+
+if __name__ == "__main__":
+
+    invname = basename(argv[0])
+    args = argv[1:]
+
+    from bdb import BdbQuit
+    debug = int(getenv('DEBUG') or 0)
+    if debug:
+        import pdb
+        from pprint import pp
+        err('debug: enabled')
+
+    try: keyboard = Controller()
+    except: bomb("cannot get keyboard controller object")
+
+    try: main()
+    except BdbQuit: bomb("debug: stop")
+    except SystemExit: raise
+    except KeyboardInterrupt: bomb("interrupted")
+    except:
+        print_exc(file=stderr)
+        if debug: pdb.post_mortem()
+    finally: # cpython bug 55589
+        try: stdout.flush()
+        finally:
+            try: stdout.close()
+            finally:
+                try: stderr.flush()
+                finally: stderr.close()
