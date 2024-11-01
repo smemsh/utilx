@@ -10,10 +10,6 @@
 # deps:
 #   - https://github.com/smemsh/utilx/ xinvert
 #
-# stat:
-#   - used in production by author
-#   - please notify author if using
-#
 # scott@smemsh.net
 # https://github.com/smemsh/utilx/
 # https://spdx.org/licenses/GPL-2.0
