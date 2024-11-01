@@ -8,10 +8,6 @@
 #   - https://github.com/smemsh/utilx/ xflashscreen
 #   - only works in xorg
 #
-# stat:
-#   - used in production by author
-#   - please inform author if using
-#
 # todo:
 #   - read settings from an rcfile
 #
