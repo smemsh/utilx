@@ -167,8 +167,8 @@ Flashes xorg screen $1 times for $2 ms.
 
 args:
 
-- $1 inversions
-- $2 milliseconds to sleep between 2 successive inversions
+- $1 inversions (default 4)
+- $2 ms to sleep between 2 successive inversions (default 40)
 
 deps:
 

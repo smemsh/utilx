@@ -4,8 +4,8 @@
 #   flashes xorg screen $1 times for $2 ms
 #
 # args:
-#   - $1 inversions
-#   - $2 milliseconds to sleep between 2 successive inversions
+#   - $1 inversions (default 4)
+#   - $2 ms to sleep between 2 successive inversions (default 40)
 #
 # deps:
 #   - https://github.com/smemsh/utilx/ xinvert
@@ -25,8 +25,8 @@ main ()
 {
 	local i iters sleep
 
-	iters=$((${1:?} * 2)) # invert twice to return to normal
-	sleep=$((${2:?} / 2)) # sleep ms between full cycles (two inversions)
+	iters=$((${1:-4} * 2)) # invert twice to return to normal
+	sleep=$((${2:-40} / 2)) # sleep ms between full cycles (two inversions)
 
 	for ((i = 0; i < iters; i++)); do
 		DISPLAY=${DISPLAY:-':0'} xinvert
