@@ -44,7 +44,13 @@ if (($# == 0))
 then rp echo "$(taskline)"; exit; fi
 
 if ((prompt))
-then input=$(rp prompt "$taskcmd: "); fi
+then
+	# enter -> "\x20", ctrl-g -> "" (due to space following colon).
+	# we want to abort on ctrl-g, as ratpoison already does in most places
+	#
+	input=$(rp prompt "$taskcmd: ")
+	[[ $input ]] || { true; exit; }
+fi
 
 if ! $taskcmd $input
 then taskcmd="$taskcmd: failed"; fi
