@@ -1,7 +1,7 @@
 utilx
 ==============================================================================
 
-Collection of accumulated utilities for Xorg, and secondarily for a
+Collection of accumulated utility scripts for Xorg, and secondarily for a
 Ratpoison window manager environment (specifically
 https://github.com/jcs/sdorfehs/).
 
