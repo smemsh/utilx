@@ -177,9 +177,11 @@ ptimer
 
 Simple countdown timer, flashes screen at conclusion.
 
-- sleeps arg1 minutes
-- prints to stdout each minute
-- flashes screen when timer expires
+- sleeps arg1 minutes, default 25, then loops
+- prints countdown to stdout each minute (on same line)
+- flashes screen when timer expires (with our ``xflashscreen``)
+- immediately resets counter on SIGUSR1
+- use -o/--oneshot to do it just once and not loop
 
 
 keyinject
