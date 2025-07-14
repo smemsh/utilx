@@ -108,10 +108,6 @@ deps:
 
 - wmctrl
 
-todo:
-
-- we don't seem to switch the rpwm group or properly select window
-
 
 rptaskmenu
 ------------------------------------------------------------------------------
