@@ -29,7 +29,7 @@ from subprocess import check_output
 
 from os.path import basename, dirname, expanduser
 from os import (
-    environ, getenv,
+    environ, getenv, unsetenv,
     open as osopen, read, write, close,
     O_RDWR,
     EX_OK as EXIT_SUCCESS,
