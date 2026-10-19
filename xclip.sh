@@ -8,4 +8,5 @@
 # https://spdx.org/licenses/GPL-2.0
 #
 declare -A selections=(p primary s secondary c clipboard)
-xclip -selection ${selections[${0: -1}]} "$@"
+perl -pe 's/[\x20\t]+$//; chomp if eof' \
+| xclip -selection ${selections[${0: -1}]} "$@"
